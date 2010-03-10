@@ -10,8 +10,8 @@ class Solution():
         self.volume = volume
         self.metabolites = {}
 
-        for metabolite in all_metabolites:
-            metabolite.solution[self] = 0.0
+        for m in all_metabolites:
+            self.metabolites[m] = 0.0
 
 class Cell():
     def __init__(self, volume):
@@ -24,5 +24,5 @@ class Protein():
 # Define all the metabolites and reactions that exist
 all_metabolites = ['ATP', 'ADP', 'Phosphates']
 
-ATPase = Reaction(['ATP', ['ADP', 'Phosphates'], 0.1, 0.0001)
+ATPase = Reaction(['ATP'], ['ADP', 'Phosphates'], 0.1, 0.0001)
 all_reactions = [ATPase]
