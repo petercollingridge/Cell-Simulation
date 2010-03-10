@@ -11,17 +11,21 @@ class Reaction:
 class Solution():
     def __init__(self, volume):
         self.volume = volume
+        self.cells = []
         self.proteins = {}
         self.metabolites = {}
 
         for m in all_metabolites:
             self.metabolites[m] = 0.0
 
+    def addCell(self, volume):
+        self.cells.append(Cell(volume))
+
 class Cell(Solution):
     def addProtein(self, protein, amount):
 
         if protein not in self.proteins:
-            self.proteins[protein] = Protein(protein)
+            self.proteins[protein] = Protein(protein, self)
 
         self.proteins[protein].amount += amount
 
@@ -32,25 +36,38 @@ class Cell(Solution):
             p.update()
 
 class Protein():
-    def __init__(self, sequence):
+    def __init__(self, sequence, solution):
         self.sequence = sequence
+        self.solution = solution
         self.amount = 0.0
+        self.functions = []
         self.interpretSequence()
 
     def interpretSequence(self):
         temp = self.sequence.split('-')
 
         if len(temp) > 1:
-            self.setMetabolites(temp[1])
+            self.setMetabolites([temp[1]])
         if temp[0] == 'transporter':
-            
+            self.functions.append(self.transport())
 
-    def setMetabolites(self, substrates, products=None):
-        self.substrates = substrates
-        self.products = products
+    def setMetabolites(self, substrates, products=[]):
+        self.substrates = []
+        self.products = []
+
+        for s in substrates:
+            self.substrates.append(s)
+
+        for p in products:
+            self.products.append(p)
+
+    def transport(self):
+        print 'transporting %s' % self.substrates
+        print self.solution.metabolites[self.substrates[0]]
 
     def update(self):
-        print 'Protein has no function'
+        for function in self.functions:
+            function
 
 
 ATPase = Reaction(['ATP'], ['ADP', 'Phosphates'], 0.1, 0.0001)
