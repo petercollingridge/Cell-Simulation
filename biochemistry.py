@@ -1,9 +1,13 @@
 # Define all the metabolites that will exist
 all_metabolites = ['ATP', 'ADP', 'Phosphates']
 
+class Metabolites:
+    def __init__(self, name):
+        self.name = name
+        self.amount = 0.0
+
 class Reaction:
     def __init__(self, substrates, products, forward_rate, reverse_rate):
-
         self.substrates = substrates
         self.products = products
         self.rates = (forward_rate, reverse_rate)
@@ -19,7 +23,9 @@ class Solution():
             self.metabolites[m] = 0.0
 
     def addCell(self, volume):
-        self.cells.append(Cell(volume))
+        newCell = Cell(volume)
+        newCell.solution = self
+        self.cells.append(newCell)
 
 class Cell(Solution):
     def addProtein(self, protein, amount):
@@ -63,7 +69,8 @@ class Protein():
 
     def transport(self):
         print 'transporting %s' % self.substrates
-        print self.solution.metabolites[self.substrates[0]]
+        print self.solution.metabolites[self.substrates[0]], '>',
+        print self.solution.solution.metabolites[self.substrates[0]]
 
     def update(self):
         for function in self.functions:
