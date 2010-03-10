@@ -1,2 +1,4 @@
 Python simulation of a single-celled organism
 Peter Collingridge 2010
+
+The testCell.py file gives an example of how to use the biochemistry.py module
