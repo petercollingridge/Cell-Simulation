@@ -32,7 +32,6 @@ class Cell(Solution):
 
         if protein not in self.proteins:
             self.proteins[protein] = Protein(protein, self)
-
         self.proteins[protein].amount += amount
 
     def update(self):
@@ -46,6 +45,7 @@ class Protein():
         self.sequence = sequence
         self.solution = solution
         self.amount = 0.0
+        self.rate = 1.0
         self.functions = []
         self.interpretSequence()
 
@@ -55,7 +55,7 @@ class Protein():
         if len(temp) > 1:
             self.setMetabolites([temp[1]])
         if temp[0] == 'transporter':
-            self.functions.append(self.transport())
+            self.functions.append(self.transport)
 
     def setMetabolites(self, substrates, products=[]):
         self.substrates = []
@@ -68,14 +68,20 @@ class Protein():
             self.products.append(p)
 
     def transport(self):
+        d1 = self.solution.metabolites[self.substrates[0]] / self.solution.volume
+        d2 = self.solution.solution.metabolites[self.substrates[0]] / self.solution.solution.volume
+        d3 = (d2 - d1) * self.rate * self.amount
+
         print 'transporting %s' % self.substrates
         print self.solution.metabolites[self.substrates[0]], '>',
-        print self.solution.solution.metabolites[self.substrates[0]]
+        print self.solution.solution.metabolites[self.substrates[0]] , d3
+
+        self.solution.metabolites[self.substrates[0]] += d3
+        self.solution.solution.metabolites[self.substrates[0]] -= d3
 
     def update(self):
         for function in self.functions:
-            function
-
+            function()
 
 ATPase = Reaction(['ATP'], ['ADP', 'Phosphates'], 0.1, 0.0001)
 all_reactions = [ATPase]
