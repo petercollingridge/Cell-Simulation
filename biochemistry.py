@@ -1,7 +1,7 @@
 # Define all the metabolites that will exist
 all_metabolites = ['ATP', 'ADP', 'Phosphates']
 
-class Metabolites:
+class Metabolite:
     def __init__(self, name):
         self.name = name
         self.amount = 0.0
@@ -20,7 +20,7 @@ class Solution():
         self.metabolites = {}
 
         for m in all_metabolites:
-            self.metabolites[m] = 0.0
+            self.metabolites[m] = Metabolite(m)
 
     def addCell(self, volume):
         newCell = Cell(volume)
@@ -52,32 +52,32 @@ class Protein():
     def interpretSequence(self):
         temp = self.sequence.split('-')
 
-        if len(temp) > 1:
-            self.setMetabolites([temp[1]])
         if temp[0] == 'transporter':
             self.functions.append(self.transport)
+        if len(temp) > 1:
+            self.setMetabolites([temp[1]])
 
     def setMetabolites(self, substrates, products=[]):
         self.substrates = []
         self.products = []
 
         for s in substrates:
-            self.substrates.append(s)
+            self.substrates.append(self.solution.metabolites[s])
+            self.products.append(self.solution.solution.metabolites[s])
 
         for p in products:
-            self.products.append(p)
+            self.products.append(self.solution.metabolites[p])
+            self.substrates.append(self.solution.solution.metabolites[p])
 
     def transport(self):
-        d1 = self.solution.metabolites[self.substrates[0]] / self.solution.volume
-        d2 = self.solution.solution.metabolites[self.substrates[0]] / self.solution.solution.volume
-        d3 = (d2 - d1) * self.rate * self.amount
+        conc1 = self.substrates[0].amount / self.solution.volume
+        conc2 = self.products[0].amount / self.solution.solution.volume
+        rate = (conc1 - conc2) * self.rate * self.amount
 
-        print 'transporting %s' % self.substrates
-        print self.solution.metabolites[self.substrates[0]], '>',
-        print self.solution.solution.metabolites[self.substrates[0]] , d3
-
-        self.solution.metabolites[self.substrates[0]] += d3
-        self.solution.solution.metabolites[self.substrates[0]] -= d3
+        for s in self.substrates:
+            s.amount -= rate
+        for p in self.products:
+            p.amount += rate
 
     def update(self):
         for function in self.functions:
