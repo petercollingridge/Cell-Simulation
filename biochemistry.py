@@ -1,44 +1,14 @@
-# Define all the metabolites that will exist
-all_metabolites = ['AB', 'A', 'B']
-
 class Metabolite:
-    def __init__(self, name):
+    def __init__(self, name, volume):
         self.name = name
         self.amount = 0.0
+        self.volume = volume
 
 class Reaction:
     def __init__(self, substrates, products, forward_rate, reverse_rate):
         self.substrates = substrates
         self.products = products
         self.rates = (forward_rate, reverse_rate)
-
-class Solution():
-    def __init__(self, volume):
-        self.volume = volume
-        self.cells = []
-        self.proteins = {}
-        self.metabolites = {}
-
-        for m in all_metabolites:
-            self.metabolites[m] = Metabolite(m)
-
-    def addCell(self, volume):
-        newCell = Cell(volume)
-        newCell.solution = self
-        self.cells.append(newCell)
-
-class Cell(Solution):
-    def addProtein(self, protein, amount):
-
-        if protein not in self.proteins:
-            self.proteins[protein] = Protein(protein, self)
-        self.proteins[protein].amount += amount
-
-    def update(self):
-        print 'Cell has %d proteins' % len(self.proteins.keys())
-
-        for p in self.proteins.values():
-            p.update()
 
 class Protein():
     def __init__(self, sequence, solution):
@@ -53,35 +23,52 @@ class Protein():
         temp = self.sequence.split('-')
 
         if temp[0] == 'transporter':
-            self.functions.append(self.transport)
-        if len(temp) > 1:
-            self.setMetabolites([temp[1]])
+            self.functions.append(self.catalyse)
+            if len(temp) > 1:
+                self.setMetabolites(self.solution.solution, [temp[1]], self.solution, [temp[1]])
 
-    def setMetabolites(self, substrates, products=[]):
+        elif temp[0] == 'enzyme':
+            self.functions.append(self.catalyse)
+            if len(temp) > 1:
+                self.setMetabolites(self.solution, all_reactions[temp[1]].substrates, self.solution, all_reactions[temp[1]].products)
+
+    def setMetabolites(self, solution1, substrates, solution2, products):
         self.substrates = []
         self.products = []
 
         for s in substrates:
-            self.substrates.append(self.solution.metabolites[s])
-            self.products.append(self.solution.solution.metabolites[s])
+            self.substrates.append(solution1.metabolites[s])
 
         for p in products:
-            self.products.append(self.solution.metabolites[p])
-            self.substrates.append(self.solution.solution.metabolites[p])
+            self.products.append(solution2.metabolites[p])
 
-    def transport(self):
-        conc1 = self.substrates[0].amount / self.solution.volume
-        conc2 = self.products[0].amount / self.solution.solution.volume
-        rate = (conc1 - conc2) * self.rate * self.amount
+    def catalyse(self):
+        substrate_bound = 1.0
+        product_bound = 1.0
 
         for s in self.substrates:
-            s.amount -= rate
+            substrate_bound *= s.amount / s.volume
+            print s.name,
+
+        print '->',
+
         for p in self.products:
-            p.amount += rate
+            product_bound *= p.amount / p.volume
+            print p.name,
+
+        net_rxn = (substrate_bound - product_bound) * self.rate * self.amount
+        print net_rxn
+
+        for s in self.substrates:
+            s.amount -= net_rxn
+        for p in self.products:
+            p.amount += net_rxn
 
     def update(self):
         for function in self.functions:
             function()
 
-ATPase = Reaction(['AB'], ['A', 'B'], 0.1, 0.0001)
-all_reactions = [ATPase]
+# Define all the metabolites that exist
+all_metabolites = ['AB', 'A', 'B']
+
+all_reactions = {'ABase': Reaction(['AB'], ['A', 'B'], 0.1, 0.0001)}
