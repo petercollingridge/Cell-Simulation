@@ -1,5 +1,5 @@
 # Define all the metabolites that will exist
-all_metabolites = ['ATP', 'ADP', 'Phosphates']
+all_metabolites = ['AB', 'A', 'B']
 
 class Metabolite:
     def __init__(self, name):
@@ -83,5 +83,5 @@ class Protein():
         for function in self.functions:
             function()
 
-ATPase = Reaction(['ATP'], ['ADP', 'Phosphates'], 0.1, 0.0001)
+ATPase = Reaction(['AB'], ['A', 'B'], 0.1, 0.0001)
 all_reactions = [ATPase]
