@@ -8,7 +8,7 @@ class Solution():
         self.metabolites = {}
 
         for m in biochemistry.all_metabolites:
-            self.metabolites[m] = biochemistry.Metabolite(m)
+            self.metabolites[m] = biochemistry.Metabolite(m, self.volume)
 
     def addCell(self, volume):
         newCell = Cell(volume)
@@ -16,8 +16,9 @@ class Solution():
         self.cells.append(newCell)
 
     def output(self):
+        print
         for m in self.metabolites.keys():
-            print '%s\t%.2f' % (m, self.metabolites[m].amount)
+            print '%s\t%.2f mM' % (m, 1000*self.metabolites[m].amount/self.volume)
 
 class Cell(Solution):
     def addProtein(self, protein, amount):
