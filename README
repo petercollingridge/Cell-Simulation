@@ -1,4 +1,19 @@
 Python simulation of a single-celled organism
 Peter Collingridge 2010
 
-The testCell.py file gives an example of how to use the biochemistry.py module
+> testCell.py
+This is the top-level module
+* Gives an example of how to create and update cells
+* Runs simulation for 1000 units of time
+* Plots graph of metabolite concentrations
+* Imports <cell> and <graphDrawer> 
+
+> cell.py
+* Defines Solution and Cell classes
+* Imports <biochemistry>
+
+> biochemistry.py
+* Contains all_metabolites list and all_reactions dictionary
+* Defines Metabolite, Reaction and Protein classes
+
+> graphDrawer.py a takes multiple time series and plots them as an SVG
