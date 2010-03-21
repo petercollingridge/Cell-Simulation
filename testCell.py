@@ -20,7 +20,7 @@ for g in graphSeries.keys():
 
 for t in range(1000):
     for g in graphSeries.keys():
-        graph.addDataToSeries(g, graphSeries[g].amount)
+        graph.addDataToSeries(g, 100*graphSeries[g].amount/graphSeries[g].volume)
 
     for cell in solution.cells:
         cell.update()
@@ -28,7 +28,4 @@ for t in range(1000):
 solution.cells[0].output()
 solution.output()
 
-for n in range(0, 1000, 10):
-    print "%.2f\t%.2f\t%.2f" % (graph.series['Cell A'][n], graph.series['Cell B'][n], graph.series['Cell AB'][n])
-
-graph.graphSeries(['Cell A', 'Cell B', 'Cell AB'])
+graph.outputSeries('test', ['Cell A', 'Cell B', 'Cell AB'])
