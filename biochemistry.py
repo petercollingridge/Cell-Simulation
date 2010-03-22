@@ -48,16 +48,16 @@ class Protein():
 
         for s in self.substrates:
             substrate_bound *= s.amount / s.volume
-            print s.name,
+            #print s.name,
 
-        print '->',
+        #print '->',
 
         for p in self.products:
             product_bound *= p.amount / p.volume
-            print p.name,
+         #   print p.name,
 
         net_rxn = (substrate_bound - product_bound) * self.rate * self.amount
-        print net_rxn
+        #print net_rxn
 
         for s in self.substrates:
             s.amount -= net_rxn
@@ -70,5 +70,4 @@ class Protein():
 
 # Define all the metabolites that exist
 all_metabolites = ['AB', 'A', 'B']
-
 all_reactions = {'ABase': Reaction(['AB'], ['A', 'B'], 0.1, 0.0001)}

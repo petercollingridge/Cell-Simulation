@@ -16,4 +16,5 @@ This is the top-level module
 * Contains all_metabolites list and all_reactions dictionary
 * Defines Metabolite, Reaction and Protein classes
 
-> graphDrawer.py a takes multiple time series and plots them as an SVG
+> graphDrawer.py
+* Takes multiple time series and plots them as an SVG
