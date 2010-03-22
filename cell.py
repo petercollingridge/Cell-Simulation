@@ -15,8 +15,10 @@ class Solution():
         self.cells.append(newCell)
 
     def output(self):
-        print
-        for m in self.metabolites.keys():
+        metabolites = self.metabolites.keys()
+        metabolites.sort()
+
+        for m in metabolites:
             print '%s\t%.2f mM' % (m, 1000*self.metabolites[m].amount/self.volume)
 
 class Cell(Solution):

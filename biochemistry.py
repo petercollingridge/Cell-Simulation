@@ -17,30 +17,42 @@ class Protein():
         self.amount = 0.0
         self.rate = 1.0
         self.functions = []
+        self.substrates = []
+        self.products = []
         self.interpretSequence()
 
     def interpretSequence(self):
-        temp = self.sequence.split('-')
+        seq = self.sequence.split('-')
+        catalytic = False
 
-        if temp[0] == 'transporter':
-            self.functions.append(self.catalyse)
-            if len(temp) > 1:
-                self.setMetabolites(self.solution.solution, [temp[1]], self.solution, [temp[1]])
+        n = 0
+        while n < len(seq):
+            if seq[n] == 'tra':
+                n += 1
+                catalytic = True
+                self.setMetabolites([seq[n]], [seq[n]], self.solution.solution)
 
-        elif temp[0] == 'enzyme':
-            self.functions.append(self.catalyse)
-            if len(temp) > 1:
-                self.setMetabolites(self.solution, all_reactions[temp[1]].substrates, self.solution, all_reactions[temp[1]].products)
+            elif seq[n] == 'rxn':
+                n += 2
+                catalytic = True
 
-    def setMetabolites(self, solution1, substrates, solution2, products):
-        self.substrates = []
-        self.products = []
+                if seq[n-1] == 'f':
+                    self.setMetabolites(all_reactions[seq[n]].substrates, all_reactions[seq[n]].products)
+                else:
+                    self.setMetabolites(all_reactions[seq[n]].products, all_reactions[seq[n]].substrates)
+            n += 1
+
+        if catalytic: self.functions.append(self.catalyse)
+
+    def setMetabolites(self, substrates, products, sol1=None, sol2=None):
+        if sol1 == None: sol1 = self.solution
+        if sol2 == None: sol2 = self.solution
 
         for s in substrates:
-            self.substrates.append(solution1.metabolites[s])
+            self.substrates.append(sol1.metabolites[s])
 
         for p in products:
-            self.products.append(solution2.metabolites[p])
+            self.products.append(sol2.metabolites[p])
 
     def catalyse(self):
         substrate_bound = 1.0
@@ -48,16 +60,16 @@ class Protein():
 
         for s in self.substrates:
             substrate_bound *= s.amount / s.volume
-            #print s.name,
+        #    print s.name,
 
         #print '->',
 
         for p in self.products:
             product_bound *= p.amount / p.volume
-         #   print p.name,
+        #    print p.name,
 
         net_rxn = (substrate_bound - product_bound) * self.rate * self.amount
-        #print net_rxn
+        #print "\t%.4f" % net_rxn
 
         for s in self.substrates:
             s.amount -= net_rxn
@@ -69,5 +81,6 @@ class Protein():
             function()
 
 # Define all the metabolites that exist
-all_metabolites = ['AB', 'A', 'B']
-all_reactions = {'ABase': Reaction(['AB'], ['A', 'B'], 0.1, 0.0001)}
+all_metabolites = ['A', 'B', 'C','D', 'AB', 'CD']
+all_reactions = {'ABase': Reaction(['AB'], ['A', 'B'], 0.1, 0.0001), 
+                 'CDase': Reaction(['CD'], ['C', 'D'], 0.1, 0.0001)}
