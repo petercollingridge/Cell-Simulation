@@ -13,7 +13,6 @@ class Graph():
     def addSeries(self, name):
         n = len(self.series.keys())
         newSeries = DataSeries(name, n)
-        newSeries.colour = self.colours[n]
         self.series[name] = newSeries
 
     def addDataToSeries(self, name, data):
@@ -147,6 +146,8 @@ class Axis():
         self.tick_interval = 0.2
 
     def drawX(self, svg, x, y, dx):
+        if self.tick_interval * dx == 0: return
+
         svg.write(' <path class="axis" d="M%d, %d L%d, %d" />\n' % (x, y, x+self.length, y))
         svg.write(' <text class="axis_label" x="%d" y="%d">Time</text>\n' % (x+self.length/2-20, y+40))
 
@@ -160,6 +161,8 @@ class Axis():
             label += self.tick_interval
 
     def drawY(self, svg, x, y, dy):
+        if self.tick_interval * dy == 0: return
+
         svg.write(' <path class="axis" d="M%d, %d L%d, %d" />\n' % (x, y, x, y-self.length))
 
         label = self.range[0]
