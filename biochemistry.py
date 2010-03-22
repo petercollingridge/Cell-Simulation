@@ -15,7 +15,8 @@ class Protein():
         self.sequence = sequence
         self.solution = solution
         self.amount = 0.0
-        self.rate = 1.0
+        self.f_rate = 1.0
+        self.r_rate = 1.0
         self.functions = []
         self.substrates = []
         self.products = []
@@ -38,8 +39,12 @@ class Protein():
 
                 if seq[n-1] == 'f':
                     self.setMetabolites(all_reactions[seq[n]].substrates, all_reactions[seq[n]].products)
+                    self.f_rate *= all_reactions[seq[n]].rates[0]
+                    self.r_rate *= all_reactions[seq[n]].rates[1]
                 else:
                     self.setMetabolites(all_reactions[seq[n]].products, all_reactions[seq[n]].substrates)
+                    self.f_rate *= all_reactions[seq[n]].rates[1]
+                    self.r_rate *= all_reactions[seq[n]].rates[0]
             n += 1
 
         if catalytic: self.functions.append(self.catalyse)
@@ -68,7 +73,7 @@ class Protein():
             product_bound *= p.amount / p.volume
         #    print p.name,
 
-        net_rxn = (substrate_bound - product_bound) * self.rate * self.amount
+        net_rxn = (substrate_bound*self.f_rate - product_bound*self.r_rate) * self.amount
         #print "\t%.4f" % net_rxn
 
         for s in self.substrates:
@@ -82,5 +87,5 @@ class Protein():
 
 # Define all the metabolites that exist
 all_metabolites = ['A', 'B', 'C','D', 'AB', 'CD']
-all_reactions = {'ABase': Reaction(['AB'], ['A', 'B'], 0.1, 0.0001), 
-                 'CDase': Reaction(['CD'], ['C', 'D'], 0.1, 0.0001)}
+all_reactions = {'ABase': Reaction(['AB'], ['A', 'B'], 0.5, 1), 
+                 'CDase': Reaction(['CD'], ['C', 'D'], 1, 0.25)}
