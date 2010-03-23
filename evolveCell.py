@@ -40,6 +40,8 @@ for n in range(64):
     DNA = mutateSequence(ancestral_DNA)
     daughter_DNA.append(DNA)
 
+outputFile = file('genome.txt','w')
+
 for gen in range(20):
     solution = virtualCell.Solution(1000000.0)
     solution.addDefaultMetabolites()
@@ -52,14 +54,14 @@ for gen in range(20):
         solution.cells[n].DNA = daughter_DNA[n]
         solution.cells[n].interpretDNA()
 
-    for t in range(1000):
+    for t in range(10000):
         for cell in solution.cells:
             cell.update()
 
     solution.cells.sort(lambda x, y: cmp(y.metabolites['EH'].amount, x.metabolites['EH'].amount))
 
-    print solution.cells[0].DNA
-    print solution.cells[0].metabolites['EH'].amount
+    outputFile.write('%s\t%f\n' % (solution.cells[0].DNA, solution.cells[0].metabolites['EH'].amount))
+    print "%.6f" % solution.cells[0].metabolites['EH'].amount
 
     daughter_DNA = breedCells(solution.cells)
 
