@@ -10,6 +10,12 @@ class Solution():
         for m in biochemistry.all_metabolites:
             self.metabolites[m] = biochemistry.Metabolite(m, self.volume)
 
+    def addDefaultMetabolites(self):
+        n = 0.08
+        for m in biochemistry.all_metabolites[:8]:
+            self.metabolites[m].amount = n * self.volume
+            n /= 2.0
+
     def addCell(self, volume):
         newCell = Cell(volume, self)
         self.cells.append(newCell)
@@ -26,8 +32,14 @@ class Cell(Solution):
         Solution.__init__(self, volume)
         self.solution = solution
 
-    def addProtein(self, protein, amount):
+    def interpretDNA(self):
+        proteins = self.DNA.split('DDAA')
+        protein_amount = 10.0 / len(proteins)
+        
+        for p in proteins:
+            self.addProtein(p, protein_amount)
 
+    def addProtein(self, protein, amount):
         if protein not in self.proteins:
             self.proteins[protein] = biochemistry.Protein(protein, self)
         self.proteins[protein].amount += amount
