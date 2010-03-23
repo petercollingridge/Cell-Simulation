@@ -20,6 +20,19 @@ class Solution():
         newCell = Cell(volume, self)
         self.cells.append(newCell)
 
+    def outputProteins(self):
+        for p in self.proteins:
+            print '\n', self.proteins[p].amount, p
+
+            for s in self.proteins[p].substrates:
+                print s.name,
+
+            print '->',
+
+            for p in self.proteins[p].products:
+                print p.name,
+            print
+
     def output(self):
         metabolites = self.metabolites.keys()
         metabolites.sort()
