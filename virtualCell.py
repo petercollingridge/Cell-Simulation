@@ -34,7 +34,7 @@ class Cell(Solution):
 
     def interpretDNA(self):
         proteins = self.DNA.split('DDAA')
-        protein_amount = 10.0 / len(proteins)
+        protein_amount = 16.0 / len(proteins)
         
         for p in proteins:
             self.addProtein(p, protein_amount)
