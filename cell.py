@@ -19,7 +19,7 @@ class Solution():
         metabolites.sort()
 
         for m in metabolites:
-            print '%s\t%.2f mM' % (m, 1000*self.metabolites[m].amount/self.volume)
+            print '%s\t%.3f%%' % (m, 100*self.metabolites[m].amount/self.volume)
 
 class Cell(Solution):
     def __init__(self, volume, solution):

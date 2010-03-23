@@ -29,13 +29,14 @@ class Graph():
 
         max_X = max(X_values)
         max_Y = max(Y_values)
+        #max_Y = 20
         self.scaleX = 1.0 * self.X_axis.length / max_X
         self.scaleY = 1.0 * self.Y_axis.length / max_Y
 
         self.X_axis.range = (0, max_X)
         self.Y_axis.range = (0, max_Y)
         self.X_axis.tick_interval = self.X_axis.range[1] / 5
-        self.Y_axis.tick_interval = 10
+        self.Y_axis.tick_interval = 2
 
         self.X_axis.drawX(self.svg, self.border[0], self.Y_axis.length + self.border[1], self.scaleX)
         self.Y_axis.drawY(self.svg, self.border[0], self.Y_axis.length + self.border[1], self.scaleY)
@@ -119,7 +120,7 @@ xmlns="http://www.w3.org/2000/svg" version="1.1">
 
     def drawLabels(self):
         x = self.border[0] + self.X_axis.length + 10
-        y = self.border[1] + 20
+        y = self.border[1] + 30
 
         series = self.series.keys()
         series.sort()

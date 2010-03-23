@@ -29,9 +29,13 @@ class Protein():
         n = 0
         while n < len(seq):
             if seq[n] == 'tra':
-                n += 1
+                n += 2
                 catalytic = True
-                self.setMetabolites([seq[n]], [seq[n]], self.solution.solution)
+
+                if seq[n-1] == 'f':
+                    self.setMetabolites([seq[n]], [seq[n]], self.solution.solution)
+                else:
+                    self.setMetabolites([seq[n]], [seq[n]], self.solution, self.solution.solution)
 
             elif seq[n] == 'rxn':
                 n += 2
