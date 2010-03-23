@@ -90,6 +90,14 @@ class Protein():
             function()
 
 # Define all the metabolites that exist
-all_metabolites = ['A', 'B', 'C','D', 'AB', 'CD']
-all_reactions = {'ABase': Reaction(['AB'], ['A', 'B'], 0.5, 1), 
-                 'CDase': Reaction(['CD'], ['C', 'D'], 1, 0.25)}
+all_metabolites = 'E,F,G,H,I,J,K,L,EH,EL,FG,FK,IL,IH,JK,JG'.split(',')
+
+all_reactions = {'EH': Reaction(['EH'], ['E', 'H'], 1, 0.2), 
+                 'EL': Reaction(['EL'], ['E', 'L'], 1, 0.5),                  'FG': Reaction(['FG'], ['F', 'G'], 0.85, 1), 
+                 'FK': Reaction(['FK'], ['F', 'K'], 0.3, 1), 
+                 'IL': Reaction(['IL'], ['I', 'L'], 0.8, 1), 
+                 'IH': Reaction(['IH'], ['I', 'H'], 1, 0.5), 
+                 'JK': Reaction(['JK'], ['J', 'K'], 0.07, 1), 
+                 'JG': Reaction(['JG'], ['J', 'G'], 0.3, 1), 
+                 'EHIL': Reaction(['EH','IL'], ['EL', 'IH'], 1, 1), 
+                 'FGJK': Reaction(['FG','JK'], ['FK', 'JG'], 1, 1), 
