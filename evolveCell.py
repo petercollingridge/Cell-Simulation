@@ -1,6 +1,12 @@
 import virtualCell
 import random
 
+def addRandomSequence(seq):
+    while random.random() < 0.995:
+        seq += random.choice(['A', 'B', 'C', 'D'])
+
+    return seq
+
 def mutateSequence(template):
     seq = ''
     n = 0
@@ -35,14 +41,17 @@ def breedCells(cells):
     return daughter_DNA
 
 ancestral_DNA = 'BACBDDAABACBDDAABAAADDAABAADDDAABCABDDAABABDBCAA'
+
 daughter_DNA = []
 for n in range(64):
     DNA = mutateSequence(ancestral_DNA)
+    DNA = addRandomSequence(DNA)
     daughter_DNA.append(DNA)
 
 outputFile = file('genome.txt','w')
+generation = 0
 
-for gen in range(20):
+while True:
     solution = virtualCell.Solution(1000000.0)
     solution.addDefaultMetabolites()
     solution.metabolites['EL'].amount = solution.volume * 0.08
@@ -54,15 +63,16 @@ for gen in range(20):
         solution.cells[n].DNA = daughter_DNA[n]
         solution.cells[n].interpretDNA()
 
-    for t in range(10000):
+    for t in range(1000):
         for cell in solution.cells:
             cell.update()
 
     solution.cells.sort(lambda x, y: cmp(y.metabolites['EH'].amount, x.metabolites['EH'].amount))
 
     outputFile.write('%s\t%f\n' % (solution.cells[0].DNA, solution.cells[0].metabolites['EH'].amount))
-    print "%.6f" % solution.cells[0].metabolites['EH'].amount
+    print "%d, %.4f" % (generation, solution.cells[0].metabolites['EH'].amount)
 
     daughter_DNA = breedCells(solution.cells)
+    generation += 1
 
 
