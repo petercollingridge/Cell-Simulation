@@ -20,9 +20,9 @@ class Protein():
         self.functions = []
         self.substrates = []
         self.products = []
-        self.interpretSequence2()
+        self.interpretSequence()
 
-    def interpretSequence2(self):
+    def interpretSequence(self):
         self.functions.append(self.catalyse)
         enz_func = None
 
@@ -43,7 +43,7 @@ class Protein():
     # Transporters
             elif enz_func[0] == 't':
                 m = codon_to_metabolite[codon]
-                print 'transporter', m
+                #print 'transporter', m
 
                 if enz_func[1] == 'f':
                     self.setMetabolites([m], [m], self.solution.solution)
@@ -53,49 +53,21 @@ class Protein():
 
     # Enzymes
             elif enz_func[0] == 'e':
-                r = all_reactions[codon]
-                print 'enzyme', r.substrates
+                if codon in all_reactions.keys():
+                    r = all_reactions[codon]
+                    #print 'enzyme', r.substrates
 
-                if enz_func[1] == 'f':
-                    self.setMetabolites(r.substrates, r.products)
-                    self.f_rate *= r.rates[0]
-                    self.r_rate *= r.rates[1]
-                else:
-                    self.setMetabolites([m], [m], self.solution, self.solution.solution)
-                enz_func = None
+                    if enz_func[1] == 'f':
+                        self.setMetabolites(r.substrates, r.products)
+                        self.f_rate *= r.rates[0]
+                        self.r_rate *= r.rates[1]
+                    else:
+                        self.setMetabolites(r.products, r.substrates)
+                        self.f_rate *= r.rates[1]
+                        self.r_rate *= r.rates[0]
+                    enz_func = None
 
             n += 2
-
-    def interpretSequence(self):
-        seq = self.sequence.split('-')
-        catalytic = False
-
-        n = 0
-        while n < len(seq):
-            if seq[n] == 'tra':
-                n += 2
-                catalytic = True
-
-                if seq[n-1] == 'f':
-                    self.setMetabolites([seq[n]], [seq[n]], self.solution.solution)
-                else:
-                    self.setMetabolites([seq[n]], [seq[n]], self.solution, self.solution.solution)
-
-            elif seq[n] == 'rxn':
-                n += 2
-                catalytic = True
-
-                if seq[n-1] == 'f':
-                    self.setMetabolites(all_reactions[seq[n]].substrates, all_reactions[seq[n]].products)
-                    self.f_rate *= all_reactions[seq[n]].rates[0]
-                    self.r_rate *= all_reactions[seq[n]].rates[1]
-                else:
-                    self.setMetabolites(all_reactions[seq[n]].products, all_reactions[seq[n]].substrates)
-                    self.f_rate *= all_reactions[seq[n]].rates[1]
-                    self.r_rate *= all_reactions[seq[n]].rates[0]
-            n += 1
-
-        if catalytic: self.functions.append(self.catalyse)
 
     def setMetabolites(self, substrates, products, sol1=None, sol2=None):
         if sol1 == None: sol1 = self.solution
