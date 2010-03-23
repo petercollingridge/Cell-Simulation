@@ -20,7 +20,51 @@ class Protein():
         self.functions = []
         self.substrates = []
         self.products = []
-        self.interpretSequence()
+        self.interpretSequence2()
+
+    def interpretSequence2(self):
+        self.functions.append(self.catalyse)
+        enz_func = None
+
+        n = 1
+        while n < len(self.sequence):
+            codon = self.sequence[n-1] + self.sequence[n]
+
+            if enz_func == None:
+                if codon == 'BA':
+                    enz_func = 'tf'
+                elif codon == 'BB':
+                    enz_func = 'tr'
+                if codon == 'BC':
+                    enz_func = 'ef'
+                elif codon == 'BD':
+                    enz_func = 'er'
+
+    # Transporters
+            elif enz_func[0] == 't':
+                m = codon_to_metabolite[codon]
+                print 'transporter', m
+
+                if enz_func[1] == 'f':
+                    self.setMetabolites([m], [m], self.solution.solution)
+                else:
+                    self.setMetabolites([m], [m], self.solution, self.solution.solution)
+                enz_func = None
+
+    # Enzymes
+            elif enz_func[0] == 'e':
+                r = all_reactions[codon]
+                print 'enzyme', r.substrates
+
+                if enz_func[1] == 'f':
+                    self.setMetabolites(r.substrates, r.products)
+                    self.f_rate *= r.rates[0]
+                    self.r_rate *= r.rates[1]
+                else:
+                    self.setMetabolites([m], [m], self.solution, self.solution.solution)
+                enz_func = None
+
+            n += 2
 
     def interpretSequence(self):
         seq = self.sequence.split('-')
@@ -91,13 +135,16 @@ class Protein():
 
 # Define all the metabolites that exist
 all_metabolites = 'E,F,G,H,I,J,K,L,EH,EL,FG,FK,IL,IH,JK,JG'.split(',')
+codons = 'AA,AB,AC,AD,BA,BB,BC,BD,CA,CB,CC,CD,DA,DB,DC,DD'.split(',')
 
-all_reactions = {'EH': Reaction(['EH'], ['E', 'H'], 1, 0.2), 
-                 'EL': Reaction(['EL'], ['E', 'L'], 1, 0.5),                  'FG': Reaction(['FG'], ['F', 'G'], 0.85, 1), 
-                 'FK': Reaction(['FK'], ['F', 'K'], 0.3, 1), 
-                 'IL': Reaction(['IL'], ['I', 'L'], 0.8, 1), 
-                 'IH': Reaction(['IH'], ['I', 'H'], 1, 0.5), 
-                 'JK': Reaction(['JK'], ['J', 'K'], 0.07, 1), 
-                 'JG': Reaction(['JG'], ['J', 'G'], 0.3, 1), 
-                 'EHIL': Reaction(['EH','IL'], ['EL', 'IH'], 1, 1), 
-                 'FGJK': Reaction(['FG','JK'], ['FK', 'JG'], 1, 1), 
+codon_to_metabolite = dict(zip(codons, all_metabolites))
+
+all_reactions = {'AA': Reaction(['EH'], ['E', 'H'], 1, 0.2), 
+                 'AB': Reaction(['EL'], ['E', 'L'], 1, 0.5),                  'AC': Reaction(['FG'], ['F', 'G'], 0.85, 1), 
+                 'AD': Reaction(['FK'], ['F', 'K'], 0.3, 1), 
+                 'BA': Reaction(['IL'], ['I', 'L'], 0.8, 1), 
+                 'BB': Reaction(['IH'], ['I', 'H'], 1, 0.5), 
+                 'BC': Reaction(['JK'], ['J', 'K'], 0.07, 1), 
+                 'BD': Reaction(['JG'], ['J', 'G'], 0.3, 1), 
+                 'CA': Reaction(['EH','IL'], ['EL', 'IH'], 1, 1), 
+                 'CB': Reaction(['FG','JK'], ['FK', 'JG'], 1, 1)}
