@@ -1,33 +1,29 @@
-import cell
+import virtualCell
 import graphDrawer
 
-solution = cell.Solution(24000.0)
+# Initilise Solution
+solution = virtualCell.Solution(1000000.0)
+solution.addDefaultMetabolites()
+solution.metabolites['EL'].amount = solution.volume * 0.08
+solution.metabolites['FK'].amount = solution.volume * 0.04
+
+# Initilise Cell
 solution.addCell(1000.0)
+solution.cells[0].addDefaultMetabolites()
+solution.cells[0].DNA = 'BACBDDAABACBDDAABAAADDAABAADDDAABCABDDAABABDBCAA'
+solution.cells[0].DNA = 'BACBDDAABACBDDAABAADDDAABCABDDAABABDBCAA'      # No E transporter
+solution.cells[0].DNA = 'BACBDDAABACBDDAABAAABBADDDAABCABDDAABABDBCAA'  # E - H antiporter
+solution.cells[0].interpretDNA()
+solution.cells[0].outputProteins()
 
-solution.metabolites['AB'].amount = 240.0
-
-solution.cells[0].metabolites['A'].amount  = 10.0
-solution.cells[0].metabolites['B'].amount  = 10.0
-solution.cells[0].metabolites['AB'].amount = 10.0
-solution.cells[0].metabolites['C'].amount  = 10.0
-solution.cells[0].metabolites['D'].amount  = 10.0
-solution.cells[0].metabolites['CD'].amount = 10.0
-
-solution.cells[0].addProtein('tra-f-A-rxn-f-CDase', 1.0)
-solution.cells[0].addProtein('tra-f-B-rxn-f-CDase', 1.0)
-solution.cells[0].addProtein('tra-f-AB', 1.0)
-solution.cells[0].addProtein('rxn-f-ABase', 1.0)
-
+# Initilise Graph
 graph = graphDrawer.Graph()
-graphSeries = { 'A (in)':  solution.cells[0].metabolites['A'],
-                'B (in)':  solution.cells[0].metabolites['B'],
-                'AB (in)': solution.cells[0].metabolites['AB'],
-                'C (in)':  solution.cells[0].metabolites['C'],
-                'D (in)':  solution.cells[0].metabolites['D'],
-                'CD (in)': solution.cells[0].metabolites['CD'],
-                'A (out)': solution.metabolites['A'],
-                'B (out)': solution.metabolites['B'],
-                'AB (out)': solution.metabolites['AB']}
+graphSeries = { 'E (in)': solution.cells[0].metabolites['E'],
+                'F (in)': solution.cells[0].metabolites['F'],
+                'G (in)': solution.cells[0].metabolites['G'],
+                'H (in)': solution.cells[0].metabolites['H'],
+                'I (in)': solution.cells[0].metabolites['I'],
+                'J (in)': solution.cells[0].metabolites['J'],}
 
 series = graphSeries.keys()
 series.sort()
@@ -37,15 +33,18 @@ for s in series:
 #print "\n-Cell-"
 #solution.cells[0].output()
 
-for t in range(1000000):
-    for s in series:
-        graph.addDataToSeries(s, 100*graphSeries[s].amount/graphSeries[s].volume)
+# Run Simulation
+for t in range(100000):
+   # for s in series:
+   #     graph.addDataToSeries(s, 100*graphSeries[s].amount/graphSeries[s].volume)
 
     for cell in solution.cells:
         cell.update()
 
+#print "\n-Solution-"
+#solution.output()
+
 print "\n-Cell-"
 solution.cells[0].output()
-solution.output()
 
-graph.outputSeries('test', series)
+#graph.outputSeries('test', series)
