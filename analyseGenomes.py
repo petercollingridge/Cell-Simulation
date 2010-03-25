@@ -1,7 +1,7 @@
 import graphDrawer
 import biochemistry
 
-genomeFile = file('Gen2810 genomes.txt', 'r')
+genomeFile = file('Genomes/Gen2810 genomes.txt', 'r')
 
 def interpretGene(sequence):
     substrates = []
@@ -52,15 +52,36 @@ def interpretGene(sequence):
 
     protein = ''
 
-    for s in substrates[:-1]:
-        protein += '%s + ' % s
-    protein += '%s -> ' % substrates[-1]
+    if len(substrates) > 0:
+        for s in substrates[:-1]:
+            protein += '%s + ' % s
+        protein += '%s -> ' % substrates[-1]
 
-    for p in products[:-1]:
-        protein += '%s + ' % p
-    protein += '%s' % products[-1]
+        for p in products[:-1]:
+            protein += '%s + ' % p
+        protein += '%s' % products[-1]
 
     return protein
+
+def compareProteomes(genome1, genome2):
+    p1 = genome1.proteins
+    p2 = genome2.proteins
+    differences = []
+
+    for p in p1.keys():
+        if p in p2:
+            if p1[p] > p2[p]:
+                differences.append('Lost a copy of %s' % p)
+            if p1[p] < p2[p]:
+                differences.append('Gained a copy of %s' % p)
+        else:
+            differences.append('Lost a copy of %s' % p)
+
+    for p in p2.keys():
+        if p not in p1:
+            differences.append('New protein %s' % p)
+
+    return differences
 
 class Genome():
     def __init__ (self, seq, fitness):
@@ -78,23 +99,32 @@ class Genome():
             else:
                 self.proteins[protein] = 1
 
+    def outputProteins(self):
+        proteins = self.proteins.keys()
+        proteins.sort()
+
+        for p in proteins:
+            print self.proteins[p], p
+
+graph = graphDrawer.Graph()
+graph.addSeries(name = 'fitness')
+
 genomes = []
 for line in genomeFile.readlines():
     temp = line.split('\t')
     g = Genome(temp[0], float(temp[1]))
+    g.findProteins()
     genomes.append(g)
 
+    graph.addDataToSeries('fitness', g.fitness)
 
 for n in range(1, len(genomes)):
     if genomes[n-1].seq != genomes[n].seq:
-        pass
-#        print "%d:\t%d" % (n, len(genomes[n].seq))
+        differences = compareProteomes(genomes[n-1], genomes[n])
 
-target_genome = -1
+        if len(differences) > 0:
+            print '>Generation %d, %f' % (n, genomes[n].fitness)
+            for d in differences:
+                print ' ', d
 
-genomes[target_genome].findProteins()
-proteins = genomes[target_genome].proteins.keys()
-proteins.sort()
-
-for p in proteins:
-    print genomes[target_genome].proteins[p], p
+graph.outputSeries('fitness graph', ['fitness'])
