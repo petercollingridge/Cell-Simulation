@@ -8,7 +8,7 @@ class Graph():
         self.colours = ['#0060e5', '#001060', '#e52060', '#a00030', '#00c020', '#006010' ]
 
         self.X_axis = Axis(360)
-        self.Y_axis = Axis(200)
+        self.Y_axis = Axis(300)
 
     def addSeries(self, name):
         n = len(self.series.keys())
@@ -18,25 +18,28 @@ class Graph():
     def addDataToSeries(self, name, data):
         self.series[name].data.append(data)
 
-    def outputSeries(self, filename, series):
+    def outputSeries(self, filename, series, X_range=None, Y_range=None):
         self.initiliseSVG(filename)
  
         X_values = []
         Y_values = []
+
         for s in series:
             X_values.append(len(self.series[s].data))
             Y_values.append(max(self.series[s].data))
 
-        max_X = max(X_values)
-        max_Y = max(Y_values)
-        #max_Y = 20
-        self.scaleX = 1.0 * self.X_axis.length / max_X
-        self.scaleY = 1.0 * self.Y_axis.length / max_Y
+        if X_range == None:
+            self.X_axis.range = (0, max(X_values))
+        else:
+            self.X_axis.range = (X_range[0], X_range[1])
 
-        self.X_axis.range = (0, max_X)
-        self.Y_axis.range = (0, max_Y)
-        self.X_axis.tick_interval = self.X_axis.range[1] / 5
-        self.Y_axis.tick_interval = 2
+        if Y_range == None:
+            self.Y_axis.range = (0, max(Y_values))
+        else:
+            self.Y_axis.range = (Y_range[0], Y_range[1])
+
+        self.scaleX = 1.0 * self.X_axis.length / (self.X_axis.range[1] - self.X_axis.range[0])
+        self.scaleY = 1.0 * self.Y_axis.length / (self.Y_axis.range[1] - self.Y_axis.range[0])
 
         self.X_axis.drawX(self.svg, self.border[0], self.Y_axis.length + self.border[1], self.scaleX)
         self.Y_axis.drawY(self.svg, self.border[0], self.Y_axis.length + self.border[1], self.scaleY)
@@ -80,7 +83,7 @@ xmlns="http://www.w3.org/2000/svg" version="1.1">
   fill-opacity: 0;
   stroke: #989898;
   stroke-opacity:0.8;
-  stroke-width: 3;
+  stroke-width: 1;
 }
 
 .label {
@@ -98,20 +101,21 @@ xmlns="http://www.w3.org/2000/svg" version="1.1">
 """)
 
     def drawPlot(self, series):
-        dx = self.border[0]
         dy = self.border[1] + self.Y_axis.length
 
         self.svg.write('<path class="data" visibility="hidden" ')
-    #    self.svg.write('stroke="%s" ' % series.colour)
+       #self.svg.write('stroke="%s" ' % series.colour)
 
-        for n in range(len(series.data)):
-            x = n * self.scaleX + dx
+        x = self.border[0]
+        for n in range(self.X_axis.range[0], self.X_axis.range[1]):
             y = dy - series.data[n] * self.scaleY
 
-            if n > 0:
+            if n > self.X_axis.range[0]:
                 self.svg.write('L%d, %.3f ' % (x, y))
             else:
                 self.svg.write('d="M%d, %.3f ' % (x, y))
+
+            x += self.scaleX
 
         self.svg.write('">\n')
         self.svg.write('<set attributeName="visibility" from="hidden" to="visible" ')
@@ -145,8 +149,11 @@ class Axis():
         self.length = length
         self.range = (0, 1) 
         self.tick_interval = 0.2
+        self.tick_number = 5
 
     def drawX(self, svg, x, y, dx):
+        self.tick_interval = (self.range[1] - self.range[0]) / self.tick_number
+
         if self.tick_interval * dx == 0: return
 
         svg.write(' <path class="axis" d="M%d, %d L%d, %d" />\n' % (x, y, x+self.length, y))
@@ -162,6 +169,8 @@ class Axis():
             label += self.tick_interval
 
     def drawY(self, svg, x, y, dy):
+        self.tick_interval = int(self.range[1] - self.range[0]) / self.tick_number
+
         if self.tick_interval * dy == 0: return
 
         svg.write(' <path class="axis" d="M%d, %d L%d, %d" />\n' % (x, y, x, y-self.length))
