@@ -19,7 +19,7 @@ class Graph():
         self.series[name].data.append(data)
 
     def outputSeries(self, filename, series, X_range=None, Y_range=None):
-        self.initiliseSVG(filename)
+        self.initiliseSVG('Graphs/'+filename)
  
         X_values = []
         Y_values = []
@@ -81,8 +81,8 @@ xmlns="http://www.w3.org/2000/svg" version="1.1">
 
 .data {
   fill-opacity: 0;
-  stroke: #989898;
-  stroke-opacity:0.8;
+  stroke: #08519C;
+  stroke-opacity:0.4;
   stroke-width: 1;
 }
 
@@ -103,7 +103,7 @@ xmlns="http://www.w3.org/2000/svg" version="1.1">
     def drawPlot(self, series):
         dy = self.border[1] + self.Y_axis.length
 
-        self.svg.write('<path class="data" visibility="hidden" ')
+        self.svg.write('<path class="data" ')
        #self.svg.write('stroke="%s" ' % series.colour)
 
         x = self.border[0]
@@ -118,13 +118,13 @@ xmlns="http://www.w3.org/2000/svg" version="1.1">
             x += self.scaleX
 
         self.svg.write('">\n')
-        self.svg.write('<set attributeName="visibility" from="hidden" to="visible" ')
+        self.svg.write('<set attributeName="stroke-opacity" from="0.4" to="0.9" ')
         self.svg.write('begin="label%d.mouseover" end="label%d.mouseout"></set>\n' % (series.number, series.number))
         self.svg.write('</path>\n')
 
     def drawLabels(self):
         x = self.border[0] + self.X_axis.length + 10
-        y = self.border[1] + 30
+        y = self.border[1] + 40
 
         series = self.series.keys()
         series.sort()
@@ -150,6 +150,7 @@ class Axis():
         self.range = (0, 1) 
         self.tick_interval = 0.2
         self.tick_number = 5
+        self.label = 'Generation'
 
     def drawX(self, svg, x, y, dx):
         self.tick_interval = (self.range[1] - self.range[0]) / self.tick_number
@@ -157,7 +158,9 @@ class Axis():
         if self.tick_interval * dx == 0: return
 
         svg.write(' <path class="axis" d="M%d, %d L%d, %d" />\n' % (x, y, x+self.length, y))
-        svg.write(' <text class="axis_label" x="%d" y="%d">Time</text>\n' % (x+self.length/2-20, y+40))
+
+        labelX = x+self.length/2 - 5*len(self.label)
+        svg.write(' <text class="axis_label" x="%d" y="%d">%s</text>\n' % (labelX, y+40, self.label))
 
         label = self.range[0]
         while label <= self.range[1]:
@@ -178,8 +181,8 @@ class Axis():
         label = self.range[0]
         while label <= self.range[1]:
             svg.write(' <path class="axis" d="M%d %d L%d %d" />\n' % (x-8, y, x+0.5, y))
-            labelX = x - 10 - len("%.1f" % label)*7
-            svg.write(' <text class="axis_text" x="%d" y="%d" >%.0f%%</text>\n' % (labelX, y+4, label))
+            labelX = x - len("%.1f" % label)*7
+            svg.write(' <text class="axis_text" x="%d" y="%d" >%.0f</text>\n' % (labelX, y+4, label))
 
             y -= self.tick_interval * dy
             label += self.tick_interval
