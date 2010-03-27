@@ -12,12 +12,13 @@ class Genome():
 
     def findProteins(self):
         for g in self.genes:
-            protein = interpretGene(g)
+            if len(g) > 3:
+                protein = interpretGene(g)
 
-            if protein in self.proteins:
-                self.proteins[protein] += 1
-            else:
-                self.proteins[protein] = 1
+                if protein in self.proteins:
+                    self.proteins[protein] += 1
+                else:
+                    self.proteins[protein] = 1
 
     def outputProteins(self):
         proteins = self.proteins.keys()
@@ -94,11 +95,11 @@ def compareProteomes(genome1, genome2):
     for p in p1.keys():
         if p in p2:
             if p1[p] > p2[p]:
-                differences.append('Lost a copy of %s' % p)
+                differences.append('Lost %d copies of %s' % (p1[p]-p2[p], p))
             if p1[p] < p2[p]:
-                differences.append('Gained a copy of %s' % p)
+                differences.append('Gained %d copies of %s' % (p2[p]-p1[p], p))
         else:
-            differences.append('Lost a copy of %s' % p)
+            differences.append('Lost %d copies of %s' % (p1[p], p))
 
     for p in p2.keys():
         if p not in p1:
@@ -113,11 +114,13 @@ def outputGenomeDifferences(genomes):
 
             if len(differences) > 0:
                 print '>Generation %d, %f' % (n, genomes[n].fitness)
+                print ' %d nts, %d genes' % (len(genomes[n].seq), len(genomes[n].genes))
+
                 for d in differences:
                     print ' ', d
 
 graph = graphDrawer.Graph()
-graph.addSeries(name = 'fitness')
+graph.addSeries(name = '[EH]')
 
 genomes = []
 for line in genomeFile.readlines():
@@ -126,7 +129,9 @@ for line in genomeFile.readlines():
     g.findProteins()
     genomes.append(g)
 
-    graph.addDataToSeries('fitness', g.fitness)
+    graph.addDataToSeries('[EH]', g.fitness)
 
 outputGenomeDifferences(genomes)
-graph.outputSeries('fitness graph', ['fitness'], X_range=(220,280))
+#graph.outputSeries('fitness graph', ['[EH]'], X_range=(0,320))
+
+#genomes[7].outputProteins()
