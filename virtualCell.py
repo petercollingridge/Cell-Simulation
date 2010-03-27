@@ -10,11 +10,12 @@ class Solution():
         for m in biochemistry.all_metabolites:
             self.metabolites[m] = biochemistry.Metabolite(m, self.volume)
 
-    def addDefaultMetabolites(self):
-        n = 0.08
-        for m in biochemistry.all_metabolites[:8]:
-            self.metabolites[m].amount = n * self.volume
-            n /= 2.0
+    def setMetabolites(self, metabolites):
+        if metabolites == 'default':
+            metabolites = defaultMetabolites
+
+        for m in metabolites:
+            self.metabolites[m].amount = metabolites[m] * self.volume
 
     def addCell(self, volume):
         newCell = Cell(volume, self)
@@ -38,7 +39,7 @@ class Solution():
         metabolites.sort()
 
         for m in metabolites:
-            print '%s\t%.3f%%' % (m, 100*self.metabolites[m].amount/self.volume)
+            print '%s\t%.4f%%' % (m, 100*self.metabolites[m].amount/self.volume)
 
 class Cell(Solution):
     def __init__(self, volume, solution):
@@ -46,6 +47,7 @@ class Cell(Solution):
         self.solution = solution
 
     def interpretDNA(self):
+        self.DNA = self.DNA.replace(' ', '')
         proteins = self.DNA.split('DDAA')
         protein_amount = 16.0 / len(proteins)
         
@@ -60,3 +62,9 @@ class Cell(Solution):
     def update(self):
         for p in self.proteins.values():
             p.update()
+
+defaultMetabolites = {}
+metabolite_conc = 0.08
+for m in biochemistry.all_metabolites[:8]:
+    defaultMetabolites[m] = metabolite_conc
+    metabolite_conc /= 2.0
