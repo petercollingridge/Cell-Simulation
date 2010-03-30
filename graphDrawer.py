@@ -2,12 +2,12 @@ class Graph():
     def __init__ (self):
         self.series = {}
         self.variables = {}
-        self.border = (40, 5, 75, 40)
+        self.border = (40, 5, 60, 45)
         self.scaleX = 1.0
         self.scaleY = 1.0
         self.colours = ['#0060e5', '#001060', '#e52060', '#a00030', '#00c020', '#006010' ]
 
-        self.X_axis = Axis(360)
+        self.X_axis = Axis(400)
         self.Y_axis = Axis(300)
 
     def addSeries(self, name):
@@ -44,10 +44,10 @@ class Graph():
         self.X_axis.drawX(self.svg, self.border[0], self.Y_axis.length + self.border[1], self.scaleX)
         self.Y_axis.drawY(self.svg, self.border[0], self.Y_axis.length + self.border[1], self.scaleY)
 
-        for s in series:
-            self.drawPlot(self.series[s])
+        for n in range(len(series)):
+            self.drawPlot(self.series[series[n]], self.colours[n])
 
-        self.drawLabels()
+        self.drawLabels(series)
         self.svg.write('</svg>')
 
     def initiliseSVG(self, name):
@@ -83,7 +83,7 @@ xmlns="http://www.w3.org/2000/svg" version="1.1">
   fill-opacity: 0;
   stroke: #08519C;
   stroke-opacity:0.4;
-  stroke-width: 1;
+  stroke-width: 0.8;
 }
 
 .label {
@@ -100,13 +100,15 @@ xmlns="http://www.w3.org/2000/svg" version="1.1">
 </style>
 """)
 
-    def drawPlot(self, series):
-        dy = self.border[1] + self.Y_axis.length
+    def drawPlot(self, series, colour):
+        #   Draw the data as a line
 
         self.svg.write('<path class="data" ')
-       #self.svg.write('stroke="%s" ' % series.colour)
+        self.svg.write('stroke="%s" ' % colour)
 
         x = self.border[0]
+        dy = self.border[1] + self.Y_axis.length
+
         for n in range(self.X_axis.range[0], self.X_axis.range[1]):
             y = dy - series.data[n] * self.scaleY
 
@@ -122,12 +124,9 @@ xmlns="http://www.w3.org/2000/svg" version="1.1">
         self.svg.write('begin="label%d.mouseover" end="label%d.mouseout"></set>\n' % (series.number, series.number))
         self.svg.write('</path>\n')
 
-    def drawLabels(self):
+    def drawLabels(self, series):
         x = self.border[0] + self.X_axis.length + 10
-        y = self.border[1] + 40
-
-        series = self.series.keys()
-        series.sort()
+        y = self.border[1] + 75
 
         for s in series:
             self.svg.write('<text id="label%d" class="label" x="%d" y="%d" ' % (self.series[s].number, x, y))
