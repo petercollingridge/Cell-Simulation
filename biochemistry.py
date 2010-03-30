@@ -30,20 +30,14 @@ class Protein():
         while n < len(self.sequence):
             codon = self.sequence[n-1] + self.sequence[n]
 
+    # Find enzyme function
             if enz_func == None:
-                if codon == 'BA':
-                    enz_func = 'tf'
-                elif codon == 'BB':
-                    enz_func = 'tr'
-                if codon == 'BC':
-                    enz_func = 'ef'
-                elif codon == 'BD':
-                    enz_func = 'er'
+                if codon in codon_to_function:
+                    enz_func = codon_to_function[codon]
 
     # Transporters
             elif enz_func[0] == 't':
                 m = codon_to_metabolite[codon]
-                #print 'transporter', m
 
                 if enz_func[1] == 'f':
                     self.setMetabolites([m], [m], self.solution.solution)
@@ -55,7 +49,6 @@ class Protein():
             elif enz_func[0] == 'e':
                 if codon in all_reactions.keys():
                     r = all_reactions[codon]
-                    #print 'enzyme', r.substrates
 
                     if enz_func[1] == 'f':
                         self.setMetabolites(r.substrates, r.products)
@@ -105,11 +98,13 @@ class Protein():
         for function in self.functions:
             function()
 
-# Define all the metabolites that exist
-all_metabolites = 'E,F,G,H,I,J,K,L,EH,EL,FG,FK,IL,IH,JK,JG'.split(',')
+# Map codons to enzyme functions
 codons = 'AA,AB,AC,AD,BA,BB,BC,BD,CA,CB,CC,CD,DA,DB,DC,DD'.split(',')
+all_metabolites = 'E,F,G,H,I,J,K,L,EH,EL,FG,FK,IL,IH,JK,JG'.split(',')
+enzyme_functions = 'tr,tf,er,ef,b'.split(',')
 
 codon_to_metabolite = dict(zip(codons, all_metabolites))
+codon_to_function = dict(zip(codons[4:], enzyme_functions))
 
 all_reactions = {'AA': Reaction(['EH'], ['E', 'H'], 1, 0.2), 
                  'AB': Reaction(['EL'], ['E', 'L'], 1, 0.5),                  'AC': Reaction(['FG'], ['F', 'G'], 0.85, 1), 
