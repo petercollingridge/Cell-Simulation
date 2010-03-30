@@ -121,6 +121,7 @@ def outputGenomeDifferences(genomes):
 
 graph = graphDrawer.Graph()
 graph.addSeries(name = '[EH]')
+graph.addSeries(name = 'genes')
 
 genomes = []
 for line in genomeFile.readlines():
@@ -130,8 +131,10 @@ for line in genomeFile.readlines():
     genomes.append(g)
 
     graph.addDataToSeries('[EH]', g.fitness)
+    graph.addDataToSeries('genes', len(g.genes))
 
 outputGenomeDifferences(genomes)
-#graph.outputSeries('fitness graph', ['[EH]'], X_range=(0,320))
+#genomes[0].outputProteins()
 
-#genomes[7].outputProteins()
+#graph.X_axis.tick_number = 7
+graph.outputSeries('gene graph2', ['[EH]','genes'], X_range=(0,300))

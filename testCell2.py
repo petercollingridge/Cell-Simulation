@@ -12,8 +12,6 @@ solution = virtualCell.Solution(1000000.0)
 solution.volume /= 64
 solution.setMetabolites(defaultMetabolites)
 
-DNA_sequences = { 'Ancestor': 'BACBDDAABACBDDAABAAADDAABAADDDAABCABDDAABABDBCAA',
-                  'Gen 70': 'BBDACDCBCBBBCDAAACCBCCDAAADCACADDAADABCCDBBADAAACCBAACACADDAADABCCDBBACADDAADABCCCBBADAAACCBAACACADDAADABCCDBBADAAACCAACACADDAADABCCDBBACADDAADABCCCBBADAAACCBAACACADDAADABCCDBBADAAACCBADCACADDAADABCCDBBADAAACCBAACACADDAAAABCCDBBADAAACCBCCDAAAACCCADDAADABCCDCDBBADAACCCBAACACADDAADABCCDBBACADDAADABCCCBBADAAACCBAACACADDAADABCCDBBADAAACCAACACADDAADABCCDBBACADDAADABCCCBBADAAACCBAACACADDAADABCCDBBADAAACCBADCACADDAADABCCDBBADAAACCBAACACADDAAAABCBACADDAADABCCCBBADAAACCBAACACADDAADABCCDBBADAAACDBADCACADDAADABCCDBBADAAACCBAACACADDAAAABCCDBBADAAACCBCCDAAAACCCADDAADABCCDCDBBADAACCCBAACACADDAADABCCDBBACADDAADABCCCBBADAAACCBAACACADDAADABCCDBBADAAACCAACACADDAADABCCDBBACADDAADABCCCBBADAAACCBAACACADDAADABCCDBBADAAACCBADCACADDAADABCCDBBADAAACCBAACACADDAAAABCCDBBADAAACCBCCDAAAACACADDAADABCCDBBADB'}
 DNA = 'BACC-BACD-BABCBBAD-BAACBBBA-BAABBCAA-BCAC-BCAD-BCAABDBB'.replace('-', 'DDAA')
 
 def addCell(seq):
@@ -23,7 +21,8 @@ def addCell(seq):
     solution.cells[-1].interpretDNA()
     solution.cells[-1].outputProteins()
 
-addCell(DNA_sequences['Gen 70'])
+#addCell(DNA_sequences['Gen 70'])
+addCell(DNA)
 
 # Initilise Graph
 graph = graphDrawer.Graph()
@@ -31,10 +30,6 @@ graphSeries = { 'E 1': solution.cells[0].metabolites['E'],
                 'L 1': solution.cells[0].metabolites['L'],
                 'H 1': solution.cells[0].metabolites['H'],
                 'EL 1': solution.cells[0].metabolites['EL']}
-#graphSeries1 = {'E 2': solution.cells[1].metabolites['E'],
-#                'L 2': solution.cells[1].metabolites['L'],
-#                'H 2': solution.cells[1].metabolites['H'],
-#                'EL 2': solution.cells[1].metabolites['EL']}
 solutionConcs = {'E (out)': solution.metabolites['E'],
                  'L (out)': solution.metabolites['L'],
                  'H (out)': solution.metabolites['H'],
