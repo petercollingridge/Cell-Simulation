@@ -14,16 +14,22 @@ class Protein():
     def __init__(self, sequence, solution):
         self.sequence = sequence
         self.solution = solution
+        self.length = len(sequence)
+        self.degradation_rate = 0.00001
+
         self.amount = 0.0
         self.f_rate = 1.0
         self.r_rate = 1.0
-        self.functions = []
+        self.net_rxn = 0
+
+        self.functions = [self.degrade]
         self.substrates = []
         self.products = []
         self.interpretSequence()
 
     def interpretSequence(self):
-        self.functions.append(self.catalyse)
+        ribosome  = False
+        catalytic = False
         enz_func = None
 
         n = 1
@@ -35,8 +41,15 @@ class Protein():
                 if codon in codon_to_function:
                     enz_func = codon_to_function[codon]
 
+                    if enz_func == 'ribosome':
+                        ribosome = True
+                        enz_func = None
+                        self.r_rate *= 0.25
+                        self.substrates.append(self.solution.metabolites['JG'])
+
     # Transporters
             elif enz_func[0] == 't':
+                catalytic = True
                 m = codon_to_metabolite[codon]
 
                 if enz_func[1] == 'f':
@@ -48,6 +61,7 @@ class Protein():
     # Enzymes
             elif enz_func[0] == 'e':
                 if codon in all_reactions.keys():
+                    catalytic = True
                     r = all_reactions[codon]
 
                     if enz_func[1] == 'f':
@@ -60,6 +74,10 @@ class Protein():
                         self.r_rate *= r.rates[0]
                     enz_func = None
 
+            if ribosome:
+                self.functions.extend([self.find_reaction_rate, self.translate])
+            elif catalytic:
+                self.functions.extend([self.find_reaction_rate, self.catalyse])
             n += 2
 
     def setMetabolites(self, substrates, products, sol1=None, sol2=None):
@@ -72,27 +90,45 @@ class Protein():
         for p in products:
             self.products.append(sol2.metabolites[p])
 
-    def catalyse(self):
-        substrate_bound = 1.0
-        product_bound = 1.0
+    def outputReaction(self):
+        for s in self.substrates:
+            print s.name,
+        print '->',
+
+        for p in self.products:
+            print p.name,
+        print "\t%f" % self.net_rxn
+
+    def degrade(self):
+        degradation = self.amount * self.degradation_rate
+        self.amount -= degradation
+        self.solution.metabolites['JG'].amount += degradation
+
+    def find_reaction_rate(self):
+        substrate_bound = self.f_rate
+        product_bound = self.r_rate
 
         for s in self.substrates:
             substrate_bound *= s.amount / s.volume
-        #    print s.name,
-
-        #print '->',
-
         for p in self.products:
             product_bound *= p.amount / p.volume
-        #    print p.name,
+ 
+        self.net_rxn = (substrate_bound - product_bound) * self.amount
 
-        net_rxn = (substrate_bound*self.f_rate - product_bound*self.r_rate) * self.amount
-        #print "\t%.4f" % net_rxn
-
+    def catalyse(self):
         for s in self.substrates:
-            s.amount -= net_rxn
+            s.amount -= self.net_rxn
         for p in self.products:
-            p.amount += net_rxn
+            p.amount += self.net_rxn
+
+    def translate(self):
+        if self.net_rxn > 0:
+            for s in self.substrates:
+                s.amount -= self.net_rxn
+            for p in self.products:
+                p.amount += self.net_rxn
+
+            self.solution.new_protein += self.net_rxn
 
     def update(self):
         for function in self.functions:
@@ -101,7 +137,7 @@ class Protein():
 # Map codons to enzyme functions
 codons = 'AA,AB,AC,AD,BA,BB,BC,BD,CA,CB,CC,CD,DA,DB,DC,DD'.split(',')
 all_metabolites = 'E,F,G,H,I,J,K,L,EH,EL,FG,FK,IL,IH,JK,JG'.split(',')
-enzyme_functions = 'tr,tf,er,ef,b'.split(',')
+enzyme_functions = 'tf,tr,ef,er,ribosome,b'.split(',')
 
 codon_to_metabolite = dict(zip(codons, all_metabolites))
 codon_to_function = dict(zip(codons[4:], enzyme_functions))
@@ -114,4 +150,5 @@ all_reactions = {'AA': Reaction(['EH'], ['E', 'H'], 1, 0.2),
                  'BC': Reaction(['JK'], ['J', 'K'], 0.07, 1), 
                  'BD': Reaction(['JG'], ['J', 'G'], 0.3, 1), 
                  'CA': Reaction(['EH','IL'], ['EL', 'IH'], 1, 1), 
-                 'CB': Reaction(['FG','JK'], ['FK', 'JG'], 1, 1)}
+                 'CB': Reaction(['FG','JK'], ['FK', 'JG'], 1, 1),
+                 'CC': Reaction(['protein'], ['JG'], 1, 0.25)}
