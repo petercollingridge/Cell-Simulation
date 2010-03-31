@@ -12,7 +12,7 @@ def mutateSequence(template):
     n = 0
 
     while n < len(template):
-        if random.random() < 0.998:
+        if random.random() < 0.999:
             seq += template[n]
         else:
             if random.random() < 0.75:
@@ -29,8 +29,8 @@ def addCell(seq):
     solution.cells[-1].DNA = seq
     solution.cells[-1].interpretDNA()
 
-offspring = [12,8,8,8,4,4,4,4,1,1,1,1,1,1,1,1]
 def breedCells(cells):
+    offspring = [12,8,8,8,4,4,4,4,1,1,1,1,1,1,1,1]
     daughter_DNA = []
 
     for n in range(len(offpring)):
@@ -55,15 +55,18 @@ def doubleCells(cells):
 
     return daughter_DNA
 
-def outputGeneration(solution):
-    solution.cells.sort(lambda x, y: cmp(y.metabolites['IH'].amount, x.metabolites['IH'].amount))
+def outputGeneration(generation, solution):
+    outputFile.write('>Generation %d\n' % generation)
 
+    solution.cells.sort(lambda x, y: cmp(y.metabolites['IH'].amount, x.metabolites['IH'].amount))
     for m in solution.metabolites.keys():
         outputFile.write('%s:%f, ' % (m, solution.metabolites[m].amount/solution.volume))
     outputFile.write('\n')
 
-    outputFile.write('%s\t%f\n' % (solution.cells[0].DNA, solution.cells[0].metabolites['IH'].amount))
-    print "%d, %.4f" % (generation, solution.cells[0].metabolites['IH'].amount)
+    for cell in solution.cells:
+        outputFile.write('%f\t%s\n' % (cell.metabolites['IH'].amount, cell.DNA))
+
+    print "Generation: %d, Genes: %d, Fitness: %.4f" % (generation, len(solution.cells[0].proteins.keys()), solution.cells[0].metabolites['IH'].amount)
 
 #   Define metabolites in pool
 defaultMetabolites = virtualCell.defaultMetabolites
@@ -71,12 +74,17 @@ defaultMetabolites['FK'] = 1.6 / 10.0
 defaultMetabolites['IL'] = 0.8 / 10.0
 defaultMetabolites['FG'] = 0.6 / 10.0
 defaultMetabolites['JG'] = 0.4 / 10.0
+defaultMetabolites['EL'] = 0.1 / 10.0
 
 #   Create generation 0
 number_of_cells = 128
 generation_time = 10
-ancestral_DNA = 'BACC-BACD-BABCBBAD-BAACBBBA-BAABBCAA-BCAC-BCAD-BCAABDBB'.replace('-', 'DDAA')
+
+ancestral_DNA = 'CABCAA-CABCAA-BACC-BACD-BADD-BAADBBBC-BAACBBBA-BCAC-BCAD-BAABBCAA-BCAABDBB'.replace('-', 'DDAA')
+ancestral_metabolites = {'E':0.8, 'F':0.4, 'G':0.2, 'H':0.1, 'I':0.05, 'J':0.025, 'K':0.0125, 'L':0.00625}
+
 daughter_DNA = []
+daughter_metabolites = []
 
 for n in range(number_of_cells):
     DNA = mutateSequence(ancestral_DNA)
@@ -96,10 +104,13 @@ while True:
         solution.cells[n].DNA = daughter_DNA[n]
         solution.cells[n].interpretDNA()
 
+        for p in solution.cells[-1].proteins.values():
+            p.amount = 1
+
     for t in range(generation_time):
         for cell in solution.cells:
             cell.update()
 
-    outputGeneration(solution)
+    outputGeneration(generation, solution)
     daughter_DNA = doubleCells(solution.cells)
     generation += 1
