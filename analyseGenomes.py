@@ -1,8 +1,6 @@
 import graphDrawer
 import biochemistry
 
-genomeFile = file('Genomes/Gen2810 genomes.txt', 'r')
-
 class Genome():
     def __init__ (self, seq, fitness):
         self.seq = seq
@@ -119,22 +117,60 @@ def outputGenomeDifferences(genomes):
                 for d in differences:
                     print ' ', d
 
+def readGenomes(filename):
+    # Old style genomes with each line having 'genome' <tab> 'fitness'
+
+    genomeFile = file(filename, 'r')
+    genomes = []
+
+    for line in genomeFile.readlines():
+        temp = line.split('\t')
+        g = Genome(temp[0], float(temp[1]))
+        g.findProteins()
+        genomes.append(g)
+
+        graph.addDataToSeries('[EH]', g.fitness)
+        graph.addDataToSeries('genes', len(g.genes))
+
+    return genomes
+
+def readGenomes2(filename):
+    genomeFile = file(filename, 'r')
+    genomes = []
+    generation = 0
+    target_generation = 1920
+
+    for line in genomeFile:
+        metabolites = line
+
+        if generation == target_generation:
+            for n in range(128):
+                data = genomeFile.next()
+                temp = data.rstrip('\r\n').split('\t')
+
+                g = Genome(temp[0], float(temp[1]))
+                g.findProteins()
+                genomes.append(g)
+        else:
+            for n in range(128):
+                genomeFile.next()
+        generation += 1
+
+    return genomes
+
 graph = graphDrawer.Graph()
 graph.addSeries(name = '[EH]')
 graph.addSeries(name = 'genes')
 
-genomes = []
-for line in genomeFile.readlines():
-    temp = line.split('\t')
-    g = Genome(temp[0], float(temp[1]))
-    g.findProteins()
-    genomes.append(g)
+genomeFile = 'Genomes/Gen 1920 genomes.txt'
+genomes = readGenomes2(genomeFile)
 
-    graph.addDataToSeries('[EH]', g.fitness)
-    graph.addDataToSeries('genes', len(g.genes))
+for g in genomes:
+    print len(g.genes), g.fitness
 
-outputGenomeDifferences(genomes)
+#genomes = readGenomes(genomeFile)
+#outputGenomeDifferences(genomes)
+
 #genomes[0].outputProteins()
-
 #graph.X_axis.tick_number = 7
-graph.outputSeries('gene graph2', ['[EH]','genes'], X_range=(0,300))
+#graph.outputSeries('gene graph2', ['[EH]','genes'], X_range=(0,300))
