@@ -21,38 +21,40 @@ class Solution():
         newCell = Cell(volume, self)
         self.cells.append(newCell)
 
-    def outputProteins(self):
-        for p in self.proteins:
-            print '\n', self.proteins[p].amount, p
+    def output(self, output_type):
+        if output_type == 'proteins':
+            for p in self.proteins:
+                print self.proteins[p].amount, p
 
-            for s in self.proteins[p].substrates:
-                print s.name,
+                for s in self.proteins[p].substrates:
+                    print s.name,
 
-            print '->',
+                print '->',
 
-            for p in self.proteins[p].products:
-                print p.name,
-            print
+                for p in self.proteins[p].products:
+                    print p.name,
+                print
 
-    def output(self):
-        metabolites = self.metabolites.keys()
-        metabolites.sort()
+        elif output_type == 'metabolites':
+            metabolites = self.metabolites.keys()
+            metabolites.sort()
 
-        for m in metabolites:
-            print '%s\t%.4f%%' % (m, 100*self.metabolites[m].amount/self.volume)
+            for m in metabolites:
+                print '%s\t%.4f%%' % (m, 100*self.metabolites[m].amount/self.volume)
 
 class Cell(Solution):
     def __init__(self, volume, solution):
         Solution.__init__(self, volume)
         self.solution = solution
+        self.new_protein = 0.0
 
     def interpretDNA(self):
         self.DNA = self.DNA.replace(' ', '')
         proteins = self.DNA.split('DDAA')
-        protein_amount = 16.0 / len(proteins)
         
         for p in proteins:
-            self.addProtein(p, protein_amount)
+            if len(p) > 0:
+                self.addProtein(p, 0.0)
 
     def addProtein(self, protein, amount):
         if protein not in self.proteins:
@@ -60,8 +62,14 @@ class Cell(Solution):
         self.proteins[protein].amount += amount
 
     def update(self):
+
         for p in self.proteins.values():
             p.update()
+        self.new_protein /= len(self.proteins.values())
+
+        for p in self.proteins.values():
+            p.amount += self.new_protein / p.length
+        self.new_protein = 0
 
 defaultMetabolites = {}
 metabolite_conc = 0.08
