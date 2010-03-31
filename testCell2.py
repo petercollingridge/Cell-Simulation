@@ -6,22 +6,25 @@ defaultMetabolites['FK'] = 1.6 / 10.0
 defaultMetabolites['IL'] = 0.8 / 10.0
 defaultMetabolites['FG'] = 0.6 / 10.0
 defaultMetabolites['JG'] = 0.4 / 10.0
+defaultMetabolites['EL'] = 0.1 / 10.0
 
 # Initilise Solution
 solution = virtualCell.Solution(1000000.0)
 solution.volume /= 64
 solution.setMetabolites(defaultMetabolites)
 
-DNA = 'BACC-BACD-BABCBBAD-BAACBBBA-BAABBCAA-BCAC-BCAD-BCAABDBB'.replace('-', 'DDAA')
+DNA = 'CABCAA-CABCAA-BACC-BACD-BADD-BAADBBBC-BAACBBBA-BCAC-BCAD-BAABBCAA-BCAABDBB'.replace('-', 'DDAA')
 
 def addCell(seq):
     solution.addCell(1000.0)
     solution.cells[-1].setMetabolites('default')
     solution.cells[-1].DNA = seq
     solution.cells[-1].interpretDNA()
-    solution.cells[-1].outputProteins()
 
-#addCell(DNA_sequences['Gen 70'])
+    for p in solution.cells[-1].proteins.values():
+        p.amount = 1
+    solution.cells[-1].output('proteins')
+
 addCell(DNA)
 
 # Initilise Graph
@@ -49,10 +52,10 @@ for t in range(48000):
         cell.update()
 
 print "\n-Solution-"
-solution.output()
+solution.output('metabolites')
 
 for cell in solution.cells:
     print "\n-Cell-"
-    cell.output()
+    cell.output('metabolites')
 
 #graph.outputSeries('top cell', series)
