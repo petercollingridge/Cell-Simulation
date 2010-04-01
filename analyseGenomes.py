@@ -1,5 +1,6 @@
 import graphDrawer
 import biochemistry
+import drawPopulation
 
 class Genome():
     def __init__ (self, seq, fitness):
@@ -7,6 +8,7 @@ class Genome():
         self.fitness = fitness
         self.genes = seq.split('DDAA')
         self.proteins = {}
+        self.colour = None
 
     def findProteins(self):
         for g in self.genes:
@@ -88,20 +90,24 @@ def interpretGene(sequence):
 def compareProteomes(genome1, genome2):
     p1 = genome1.proteins
     p2 = genome2.proteins
-    differences = []
+    differences = [0]
 
     for p in p1.keys():
         if p in p2:
             if p1[p] > p2[p]:
                 differences.append('Lost %d copies of %s' % (p1[p]-p2[p], p))
+                differences[0] += p1[p]-p2[p]
             if p1[p] < p2[p]:
                 differences.append('Gained %d copies of %s' % (p2[p]-p1[p], p))
+                differences[0] += p2[p]-p1[p]
         else:
             differences.append('Lost %d copies of %s' % (p1[p], p))
+            differences[0] += p1[p]
 
     for p in p2.keys():
         if p not in p1:
             differences.append('New protein %s' % p)
+            differences[0] += p2[p]
 
     return differences
 
@@ -134,11 +140,10 @@ def readGenomes(filename):
 
     return genomes
 
-def readGenomes2(filename):
+def readGenomes2(filename, target_generation):
     genomeFile = file(filename, 'r')
     genomes = []
     generation = 0
-    target_generation = 1920
 
     for line in genomeFile:
         metabolites = line
@@ -158,19 +163,94 @@ def readGenomes2(filename):
 
     return genomes
 
-graph = graphDrawer.Graph()
-graph.addSeries(name = '[EH]')
-graph.addSeries(name = 'genes')
+def getTopGenomeInEachGeneration(filename):
+    genomeFile = file(filename, 'r')
+    genomes = []
+
+    for line in genomeFile:
+        metabolites = line
+
+        data = genomeFile.next()
+        temp = data.rstrip('\r\n').split('\t')
+
+        g = Genome(temp[0], float(temp[1]))
+        g.findProteins()
+        genomes.append(g)
+
+        for n in range(127):
+            genomeFile.next()
+
+    return genomes
+
+def colourByDistance(genomes):
+    distance_matrix = {}
+
+    for i in range(len(genomes)):
+        for j in range(i+1, len(genomes)):
+            d = compareProteomes(genomes[i], genomes[j])
+            distance_matrix[(i, j)] = d[0]
+            distance_matrix[(j, i)] = d[0]
+
+    max_distance  = max(distance_matrix.values())
+
+    for i in distance_matrix.keys():
+        if distance_matrix[i] == max_distance:
+            (g1, g2) = i
+            break
+
+    for n in range(len(genomes)):
+        if n != g1:
+            d1 = int(255 * distance_matrix[(n, g1)] / max_distance)
+        else:
+            d1 = 0
+
+        if n != g2:
+            d2 = int(255 * distance_matrix[(n, g2)] / max_distance)
+        else:
+            d2 = 0
+
+        genomes[n].colour = (0, d1, d2)
+
+    return genomes
+
+def createProteinDistanceMatrix(genomes):
+    total_distance = 0
+
+    for i in range(len(genomes)):
+        for j in range(i+1, len(genomes)):
+            d = compareProteomes(genomes[i], genomes[j])
+            total_distance += d[0]
+
+    print total_distance
+
+def PlotPop(genomes):
+    genomes = readGenomes2(genomeFile, 1920)
+    genomes = colourByDistance(genomes)
+
+    pd = drawPopulation.PopulationDiagram(genomes)
+    pd.plotPopulation()
+    pd.outputPlot('test circles')
 
 genomeFile = 'Genomes/Gen 1920 genomes.txt'
-genomes = readGenomes2(genomeFile)
 
+graph = graphDrawer.Graph()
+graph.addSeries(name = '[IH]')
+graph.addSeries(name = 'genes')
+
+genomes = getTopGenomeInEachGeneration(genomeFile)
 for g in genomes:
-    print len(g.genes), g.fitness
+    graph.addDataToSeries('[IH]', g.fitness)
+    graph.addDataToSeries('genes', len(g.genes))
 
-#genomes = readGenomes(genomeFile)
+graph.X_axis.tick_number = 4
+graph.outputSeries('Run2 Gen1920 fitness', ['[IH]', 'genes'], X_range=(0,300), Y_range=(0,40))
+
+#for n in range(25):
+#    print n,
+#    genomes = readGenomes2(genomeFile, n)
+#    createProteinDistanceMatrix(genomes)
+
 #outputGenomeDifferences(genomes)
 
 #genomes[0].outputProteins()
-#graph.X_axis.tick_number = 7
-#graph.outputSeries('gene graph2', ['[EH]','genes'], X_range=(0,300))
+
