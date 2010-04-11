@@ -163,12 +163,15 @@ def readGenomes2(filename, target_generation):
 
     return genomes
 
-def getTopGenomeInEachGeneration(filename):
+def filterGenomeByFitnessPosition(filename, position):
     genomeFile = file(filename, 'r')
     genomes = []
 
     for line in genomeFile:
         metabolites = line
+
+        for n in range(generation):
+            genomeFile.next()
 
         data = genomeFile.next()
         temp = data.rstrip('\r\n').split('\t')
@@ -177,7 +180,7 @@ def getTopGenomeInEachGeneration(filename):
         g.findProteins()
         genomes.append(g)
 
-        for n in range(127):
+        for n in range(127-generation):
             genomeFile.next()
 
     return genomes
@@ -224,7 +227,10 @@ def createProteinDistanceMatrix(genomes):
     print total_distance
 
 def PlotPop(genomes):
-    genomes = readGenomes2(genomeFile, 1920)
+    genomes = []
+    for g in range(16):
+        g = readGenomes2(genomeFile, g)
+        genomes.extend(g[:16])
     genomes = colourByDistance(genomes)
 
     pd = drawPopulation.PopulationDiagram(genomes)
@@ -237,13 +243,15 @@ graph = graphDrawer.Graph()
 graph.addSeries(name = '[IH]')
 graph.addSeries(name = 'genes')
 
-genomes = getTopGenomeInEachGeneration(genomeFile)
+#PlotPop(genomes)
+genomes = filterGenomeByFitnessPosition(genomeFile, position=64)
+
 for g in genomes:
     graph.addDataToSeries('[IH]', g.fitness)
     graph.addDataToSeries('genes', len(g.genes))
 
 graph.X_axis.tick_number = 4
-graph.outputSeries('Run2 Gen1920 fitness', ['[IH]', 'genes'], X_range=(0,300), Y_range=(0,40))
+graph.outputSeries('Run2 Gen1920 fitness Gen0', ['[IH]', 'genes'], X_range=(0,1920))
 
 #for n in range(25):
 #    print n,
