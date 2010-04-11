@@ -185,6 +185,22 @@ def filterGenomeByFitnessPosition(filename, position):
 
     return genomes
 
+def getMetabolites(filename):
+    genomeFile = file(filename, 'r')
+    metabolites = []
+
+    for line in genomeFile:
+        metaboliteDictionary = {}
+
+        for n in line.split(', ')[:-1]:
+            m = n.split(':')
+            metaboliteDictionary[m[0]] = float(m[1])
+        metabolites.append(metaboliteDictionary)
+
+        for n in range(128):
+            genomeFile.next()
+    return metabolites
+
 def colourByDistance(genomes):
     distance_matrix = {}
 
@@ -240,18 +256,30 @@ def PlotPop(genomes):
 genomeFile = 'Genomes/Gen 1920 genomes.txt'
 
 graph = graphDrawer.Graph()
-graph.addSeries(name = '[IH]')
-graph.addSeries(name = 'genes')
+graph.addSeries(name = 'F')
+graph.addSeries(name = 'FG')
+graph.addSeries(name = 'FK')
+graph.addSeries(name = 'K')
+#graph.addSeries(name = '[IH]')
+#graph.addSeries(name = 'genes')
 
 #PlotPop(genomes)
-genomes = filterGenomeByFitnessPosition(genomeFile, position=64)
+#genomes = filterGenomeByFitnessPosition(genomeFile, position=64)
 
-for g in genomes:
-    graph.addDataToSeries('[IH]', g.fitness)
-    graph.addDataToSeries('genes', len(g.genes))
+metabolites = getMetabolites(genomeFile)
+
+for m in metabolites:
+    graph.addDataToSeries('F', m['F'])
+    graph.addDataToSeries('FG', m['FG'])
+    graph.addDataToSeries('FK', m['FK'])
+    graph.addDataToSeries('K', m['K'])
+
+#for g in genomes:
+#    graph.addDataToSeries('[IH]', g.fitness)
+#    graph.addDataToSeries('genes', len(g.genes))
 
 graph.X_axis.tick_number = 4
-graph.outputSeries('Run2 Gen1920 fitness Gen0', ['[IH]', 'genes'], X_range=(0,1920))
+graph.outputSeries('Run2 Gen1920 metabolites', ['F', 'FG', 'FK','K'], X_range=(0,1920))
 
 #for n in range(25):
 #    print n,
