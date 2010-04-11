@@ -2,7 +2,7 @@ class Graph():
     def __init__ (self):
         self.series = {}
         self.variables = {}
-        self.border = (40, 5, 60, 45)
+        self.border = (50, 5, 60, 45)
         self.scaleX = 1.0
         self.scaleY = 1.0
         self.colours = ['#0060e5', '#001060', '#e52060', '#a00030', '#00c020', '#006010' ]
@@ -152,7 +152,10 @@ class Axis():
         self.label = 'Generation'
 
     def drawX(self, svg, x, y, dx):
-        self.tick_interval = (self.range[1] - self.range[0]) / self.tick_number
+        if self.range[1] > 4:
+            self.tick_interval = (self.range[1] - self.range[0]) / self.tick_number
+        else:
+            self.tick_interval = (self.range[1] - self.range[0]) / self.tick_number
 
         if self.tick_interval * dx == 0: return
 
@@ -171,7 +174,10 @@ class Axis():
             label += self.tick_interval
 
     def drawY(self, svg, x, y, dy):
-        self.tick_interval = int(self.range[1] - self.range[0]) / self.tick_number
+        if self.range[1] > 4:
+            self.tick_interval = int(self.range[1] - self.range[0]) / self.tick_number
+        else:
+            self.tick_interval = (self.range[1] - self.range[0]) / self.tick_number
 
         if self.tick_interval * dy == 0: return
 
@@ -180,8 +186,8 @@ class Axis():
         label = self.range[0]
         while label <= self.range[1]:
             svg.write(' <path class="axis" d="M%d %d L%d %d" />\n' % (x-8, y, x+0.5, y))
-            labelX = x - len("%.1f" % label)*7
-            svg.write(' <text class="axis_text" x="%d" y="%d" >%.0f</text>\n' % (labelX, y+4, label))
+            labelX = x - len("%.4f" % label)*7
+            svg.write(' <text class="axis_text" x="%d" y="%d" >%.03f</text>\n' % (labelX, y+4, label))
 
             y -= self.tick_interval * dy
             label += self.tick_interval
