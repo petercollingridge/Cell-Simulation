@@ -135,7 +135,8 @@ class Protein():
             function()
 
 # Map codons to enzyme functions
-codons = 'AA,AB,AC,AD,BA,BB,BC,BD,CA,CB,CC,CD,DA,DB,DC,DD'.split(',')
+nucleotides = ['A', 'B', 'C', 'D']
+codons = ['%s%s' % (a, b) for a in nucleotides for b in nucleotides]
 all_metabolites = 'E,F,G,H,I,J,K,L,EH,EL,FG,FK,IL,IH,JK,JG'.split(',')
 enzyme_functions = 'tf,tr,ef,er,ribosome,b'.split(',')
 
@@ -143,7 +144,8 @@ codon_to_metabolite = dict(zip(codons, all_metabolites))
 codon_to_function = dict(zip(codons[4:], enzyme_functions))
 
 all_reactions = {'AA': Reaction(['EH'], ['E', 'H'], 1, 0.2), 
-                 'AB': Reaction(['EL'], ['E', 'L'], 1, 0.5),                  'AC': Reaction(['FG'], ['F', 'G'], 0.85, 1), 
+                 'AB': Reaction(['EL'], ['E', 'L'], 1, 0.5), 
+                 'AC': Reaction(['FG'], ['F', 'G'], 0.85, 1), 
                  'AD': Reaction(['FK'], ['F', 'K'], 0.3, 1), 
                  'BA': Reaction(['IL'], ['I', 'L'], 0.8, 1), 
                  'BB': Reaction(['IH'], ['I', 'H'], 1, 0.5), 
