@@ -1,3 +1,18 @@
+from bindingInteractions import findBindingSites
+
+def Translate(mRNA):
+    """ Takes a DNA sequence (using nucleotides: A,B,C,D)
+        Returns a peptide sequence (using amino acids L-Z) """
+        
+    peptide = ''
+    
+    # Splits bases into pairs and cuts off final base if there is an odd number
+    for n in range(1, len(mRNA), 2):        
+        if mRNA[n-1:n+1] == 'DD': return peptide
+        peptide += TRANSLATE[mRNA[n-1:n+1]]
+        
+    return peptide
+
 class Metabolite:
     def __init__(self, name, volume):
         self.name = name
@@ -13,11 +28,12 @@ class Reaction:
 class Protein():
     def __init__(self, sequence, solution):
         self.sequence = sequence
+        self.length   = len(sequence)
         self.solution = solution
-        self.length = len(sequence)
+        
         self.degradation_rate = 0.00001
-
         self.amount = 0.0
+        
         self.f_rate = 1.0
         self.r_rate = 1.0
         self.net_rxn = 0
@@ -25,6 +41,8 @@ class Protein():
         self.functions = [self.degrade]
         self.substrates = []
         self.products = []
+        self.binding_sites = []
+        
         self.interpretSequence()
 
     def interpretSequence(self):
@@ -46,6 +64,9 @@ class Protein():
                         enz_func = None
                         self.r_rate *= 0.25
                         self.substrates.append(self.solution.metabolites['JG'])
+                        
+                    elif enz_func == 'bind_DNA':
+                        binding_seq = ''
 
     # Transporters
             elif enz_func[0] == 't':
@@ -72,6 +93,13 @@ class Protein():
                         self.setMetabolites(r.products, r.substrates)
                         self.f_rate *= r.rates[1]
                         self.r_rate *= r.rates[0]
+                    enz_func = None
+                    
+            elif enz_func == 'bind_DNA':
+                if codon != 'DD':
+                    binding_seq += codon
+                else:
+                    binding_sites.append(binding_seq)
                     enz_func = None
 
             if ribosome:
@@ -136,10 +164,12 @@ class Protein():
 
 # Map codons to enzyme functions
 nucleotides = ['A', 'B', 'C', 'D']
-codons = ['%s%s' % (a, b) for a in nucleotides for b in nucleotides]
+amino_acids = 'L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z, '.split(',')
 all_metabolites = 'E,F,G,H,I,J,K,L,EH,EL,FG,FK,IL,IH,JK,JG'.split(',')
-enzyme_functions = 'tf,tr,ef,er,ribosome,b'.split(',')
+enzyme_functions = 'tf,tr,ef,er,ribosome,bind_DNA'.split(',')
+codons = ['%s%s' % (a, b) for a in nucleotides for b in nucleotides]
 
+TRANSLATE = dict(zip(codons, amino_acids))
 codon_to_metabolite = dict(zip(codons, all_metabolites))
 codon_to_function = dict(zip(codons[4:], enzyme_functions))
 
