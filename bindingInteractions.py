@@ -1,6 +1,11 @@
 nucleotides = ['A', 'B', 'C', 'D']
 
-class AminoAcid():
+class BindingSite:
+    def __init__(self, strength, position):
+        self.strength = strength
+        self.position = position
+
+class AminoAcid:
     def __init__(self, interactions):
         self.interactions = {}
         self.couplets1 = {}
@@ -25,7 +30,7 @@ def findBindingSites(peptide, DNA):
             c1, c2, c3 = i1 + i2, i2 + i3, i3 + i4
 
             if c1 > 1 and c2 > 1 and c3 > 1:
-                sites.append([c1 * c2 * c3, n+6, 0])
+                sites.append(BindingSite(c1 * c2 * c3, n+6))
     
     sites.sort(reverse=True)
     s1 = 0
