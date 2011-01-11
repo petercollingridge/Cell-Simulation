@@ -28,16 +28,27 @@ class Solution():
     def output(self, output_type):
         if output_type == 'proteins':
             for p in self.proteins:
-                print self.proteins[p].amount, p
+                print "Name:   %s" % p
+                print "Amount: %s" % self.proteins[p].amount
 
-                for s in self.proteins[p].substrates:
-                    print s.name,
+                if self.proteins[p].binding_sites:
+                    print "Binding Sites:"
+                    
+                    for site in self.proteins[p].binding_sites:
+                        print "  %s" % self.proteins[p].binding_sites
 
-                print '->',
+                if self.proteins[p].substrates:
+                    print "Reaction:"
+                    
+                    for s in self.proteins[p].substrates:
+                        print "  %s" % s.name,
 
-                for p in self.proteins[p].products:
-                    print p.name,
-                print
+                    print '->',
+
+                    for p in self.proteins[p].products:
+                        print p.name,
+                        
+                print '\n'
 
         elif output_type == 'metabolites':
             metabolites = self.metabolites.keys()
@@ -49,19 +60,27 @@ class Solution():
 class Cell(Solution):
     def __init__(self, volume, solution):
         Solution.__init__(self, volume)
-        self.solution = solution
+        self.solution = solution    # Solution in which the cell exists
         self.DNA = []
+        self.RNA = {}
+        self.genes = []
         self.new_protein = 0.0
 
     def addDNA(self, DNA_string):
         DNA = DNA_string.rstrip('\n').replace(' ', '')
         self.DNA.append(DNA)
         
-        proteins = DNA.split('DDAA')
+        genes = DNA.split('DDAA')
+        self.genes.extend(genes)
         
-        for p in proteins:
-            if len(p) > 0:
-                self.addProtein(p, 0.0)
+        for gene in genes:
+            if len(gene) > 0:
+                peptide = biochemistry.Translate(gene)
+                print gene, peptide
+                self.addProtein(gene, 0.0)
+                
+    def addRNA(self, RNA, amount):
+        self.RNA[RNA] = self.RNA.get(RNA, 0.0) + amount
 
     def addProtein(self, protein, amount):
         if protein not in self.proteins:
