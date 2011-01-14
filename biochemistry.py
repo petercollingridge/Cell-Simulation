@@ -39,53 +39,53 @@ class Protein():
         self.net_rxn = 0
 
         self.functions = [self.degrade]
+        self.binding_seqs = []
         self.substrates = []
         self.products = []
-        self.binding_sites = []
         
-        self.interpretSequence()
+        self._interpretSequence()
 
-    def interpretSequence(self):
+    def _interpretSequence(self):
         ribosome  = False
         catalytic = False
-        enz_func = None
+        domain = None
 
-        n = 1
-        while n < len(self.sequence):
-            codon = self.sequence[n-1] + self.sequence[n]
+        for aa in self.sequence:
 
     # Find enzyme function
-            if enz_func == None:
-                if codon in codon_to_function:
-                    enz_func = codon_to_function[codon]
+            if domain == None:
+                domain = aa_to_function.get(aa)
+                
+                print 'Found domain ', domain
 
-                    if enz_func == 'ribosome':
-                        ribosome = True
-                        enz_func = None
-                        self.r_rate *= 0.25
-                        self.substrates.append(self.solution.metabolites['JG'])
-                        
-                    elif enz_func == 'bind_DNA':
-                        binding_seq = ''
+                if domain == 'bind_DNA':
+                    binding_seq = ''
+                    binding_partner = None
+
+                elif domain == 'ribosome':
+                    ribosome = True
+                    domain = None
+                    self.r_rate *= 0.25
+                    self.substrates.append(self.solution.metabolites['JG'])
 
     # Transporters
-            elif enz_func[0] == 't':
+            elif domain[0] == 't':
                 catalytic = True
-                m = codon_to_metabolite[codon]
+                m = aa_to_metabolite[aa]
 
-                if enz_func[1] == 'f':
+                if domain[1] == 'f':
                     self.setMetabolites([m], [m], self.solution.solution)
                 else:
                     self.setMetabolites([m], [m], self.solution, self.solution.solution)
-                enz_func = None
+                domain = None
 
     # Enzymes
-            elif enz_func[0] == 'e':
-                if codon in all_reactions.keys():
+            elif domain[0] == 'e':
+                if aa in all_reactions.keys():
                     catalytic = True
-                    r = all_reactions[codon]
+                    r = all_reactions[aa]
 
-                    if enz_func[1] == 'f':
+                    if domain[1] == 'f':
                         self.setMetabolites(r.substrates, r.products)
                         self.f_rate *= r.rates[0]
                         self.r_rate *= r.rates[1]
@@ -93,20 +93,20 @@ class Protein():
                         self.setMetabolites(r.products, r.substrates)
                         self.f_rate *= r.rates[1]
                         self.r_rate *= r.rates[0]
-                    enz_func = None
+                    domain = None
                     
-            elif enz_func == 'bind_DNA':
-                if codon != 'DD':
-                    binding_seq += codon
+            elif domain == 'bind_DNA':
+                if aa == 'L':
+                    if binding_seq:
+                        self.binding_seqs.append(binding_seq)
+                    domain = None
                 else:
-                    binding_sites.append(binding_seq)
-                    enz_func = None
+                    binding_seq += aa
 
             if ribosome:
                 self.functions.extend([self.find_reaction_rate, self.translate])
             elif catalytic:
                 self.functions.extend([self.find_reaction_rate, self.catalyse])
-            n += 2
 
     def setMetabolites(self, substrates, products, sol1=None, sol2=None):
         if sol1 == None: sol1 = self.solution
@@ -117,6 +117,13 @@ class Protein():
 
         for p in products:
             self.products.append(sol2.metabolites[p])
+
+    def outputProperties(self):
+        print "Sequence: %s" % self.sequence
+        print "Amount:   %s" % self.amount
+        
+        for seq in self.binding_seqs:
+            print "* binding sequence: %s" % seq
 
     def outputReaction(self):
         for s in self.substrates:
@@ -169,18 +176,18 @@ all_metabolites = 'E,F,G,H,I,J,K,L,EH,EL,FG,FK,IL,IH,JK,JG'.split(',')
 enzyme_functions = 'tf,tr,ef,er,ribosome,bind_DNA'.split(',')
 codons = ['%s%s' % (a, b) for a in nucleotides for b in nucleotides]
 
-TRANSLATE = dict(zip(codons, amino_acids))
-codon_to_metabolite = dict(zip(codons, all_metabolites))
-codon_to_function = dict(zip(codons[4:], enzyme_functions))
+TRANSLATE = dict(zip(codons, amino_acids)) 
+aa_to_metabolite = dict(zip(amino_acids, all_metabolites))  # Doesn't map final metabolite, JG
+aa_to_function = dict(zip(amino_acids, enzyme_functions))
 
-all_reactions = {'AA': Reaction(['EH'], ['E', 'H'], 1, 0.2), 
-                 'AB': Reaction(['EL'], ['E', 'L'], 1, 0.5), 
-                 'AC': Reaction(['FG'], ['F', 'G'], 0.85, 1), 
-                 'AD': Reaction(['FK'], ['F', 'K'], 0.3, 1), 
-                 'BA': Reaction(['IL'], ['I', 'L'], 0.8, 1), 
-                 'BB': Reaction(['IH'], ['I', 'H'], 1, 0.5), 
-                 'BC': Reaction(['JK'], ['J', 'K'], 0.07, 1), 
-                 'BD': Reaction(['JG'], ['J', 'G'], 0.3, 1), 
-                 'CA': Reaction(['EH','IL'], ['EL', 'IH'], 1, 1), 
-                 'CB': Reaction(['FG','JK'], ['FK', 'JG'], 1, 1),
-                 'CC': Reaction(['protein'], ['JG'], 1, 0.25)}
+all_reactions = {'L': Reaction(['EH'], ['E', 'H'], 1, 0.2), 
+                 'M': Reaction(['EL'], ['E', 'L'], 1, 0.5), 
+                 'N': Reaction(['FG'], ['F', 'G'], 0.85, 1), 
+                 'O': Reaction(['FK'], ['F', 'K'], 0.3, 1), 
+                 'P': Reaction(['IL'], ['I', 'L'], 0.8, 1), 
+                 'Q': Reaction(['IH'], ['I', 'H'], 1, 0.5), 
+                 'R': Reaction(['JK'], ['J', 'K'], 0.07, 1), 
+                 'S': Reaction(['JG'], ['J', 'G'], 0.3, 1), 
+                 'T': Reaction(['EH','IL'], ['EL', 'IH'], 1, 1), 
+                 'U': Reaction(['FG','JK'], ['FK', 'JG'], 1, 1),
+                 'V': Reaction(['protein'], ['JG'], 1, 0.25)}

@@ -4,11 +4,9 @@ Peter Collingridge 2010
 > testCell.py
 This is the top-level module
 * Gives an example of how to create and update cells
-* Runs simulation for 1000 units of time
-* Plots graph of metabolite concentrations
-* Imports <cell> and <graphDrawer> 
+* Runs simulation for 48000 units of time
 
-> cell.py
+> virtualCell.py
 * Defines Solution and Cell classes
 * Imports <biochemistry>
 

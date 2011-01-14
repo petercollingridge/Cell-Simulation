@@ -27,25 +27,18 @@ class Solution():
 
     def output(self, output_type):
         if output_type == 'proteins':
-            for p in self.proteins:
-                print "Name:   %s" % p
-                print "Amount: %s" % self.proteins[p].amount
+            for protein in self.proteins.values():
+                protein.outputProperties()
 
-                if self.proteins[p].binding_sites:
-                    print "Binding Sites:"
-                    
-                    for site in self.proteins[p].binding_sites:
-                        print "  %s" % self.proteins[p].binding_sites
-
-                if self.proteins[p].substrates:
+                if protein.substrates:
                     print "Reaction:"
                     
-                    for s in self.proteins[p].substrates:
+                    for s in protein.substrates:
                         print "  %s" % s.name,
 
                     print '->',
 
-                    for p in self.proteins[p].products:
+                    for p in protein.products:
                         print p.name,
                         
                 print '\n'
@@ -77,7 +70,7 @@ class Cell(Solution):
             if len(gene) > 0:
                 peptide = biochemistry.Translate(gene)
                 print gene, peptide
-                self.addProtein(gene, 0.0)
+                self.addProtein(peptide, 0.0)
                 
     def addRNA(self, RNA, amount):
         self.RNA[RNA] = self.RNA.get(RNA, 0.0) + amount
@@ -88,6 +81,8 @@ class Cell(Solution):
         self.proteins[protein].amount += amount
 
     def update(self):
+        # Test protein binding RNA, DNA, protein
+        
         for p in self.proteins.values():
             p.update()
         self.new_protein /= len(self.proteins.values())
