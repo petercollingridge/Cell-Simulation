@@ -42,6 +42,7 @@ class Protein():
         self.binding_seqs = []
         self.substrates = []
         self.products = []
+        self.binding_partner = None
         
         self._interpretSequence()
 
@@ -49,20 +50,16 @@ class Protein():
         ribosome  = False
         catalytic = False
         domain = None
+        binding_seq = ''
 
         for aa in self.sequence:
 
     # Find enzyme function
             if domain == None:
                 domain = aa_to_function.get(aa)
-                
                 print 'Found domain ', domain
 
-                if domain == 'bind_DNA':
-                    binding_seq = ''
-                    binding_partner = None
-
-                elif domain == 'ribosome':
+                if domain == 'ribosome':
                     ribosome = True
                     domain = None
                     self.r_rate *= 0.25
@@ -94,12 +91,23 @@ class Protein():
                         self.f_rate *= r.rates[1]
                         self.r_rate *= r.rates[0]
                     domain = None
+
+    # Binding Protein                    
+            elif domain == 'binding':
+                if aa == 'L':
+                    domain = 'binding sequence'
+                    binding_seq = ''
                     
-            elif domain == 'bind_DNA':
+                elif aa == 'M':
+                    self.binding_partner = 'DNA'
+                elif aa == 'N':
+                    self.binding_partner = 'RNA'
+                    
+            elif domain == 'binding sequence':
                 if aa == 'L':
                     if binding_seq:
                         self.binding_seqs.append(binding_seq)
-                    domain = None
+                        domain = None
                 else:
                     binding_seq += aa
 
@@ -122,8 +130,10 @@ class Protein():
         print "Sequence: %s" % self.sequence
         print "Amount:   %s" % self.amount
         
-        for seq in self.binding_seqs:
-            print "* binding sequence: %s" % seq
+        if self.binding_partner:
+            print "* binds: %s" % self.binding_partner
+            for seq in self.binding_seqs:
+                print "* at sequence: %s" % seq
 
     def outputReaction(self):
         for s in self.substrates:
@@ -171,23 +181,24 @@ class Protein():
 
 # Map codons to enzyme functions
 nucleotides = ['A', 'B', 'C', 'D']
+codons = ['%s%s' % (a, b) for a in nucleotides for b in nucleotides]
+
 amino_acids = 'L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z, '.split(',')
 all_metabolites = 'E,F,G,H,I,J,K,L,EH,EL,FG,FK,IL,IH,JK,JG'.split(',')
-enzyme_functions = 'tf,tr,ef,er,ribosome,bind_DNA'.split(',')
-codons = ['%s%s' % (a, b) for a in nucleotides for b in nucleotides]
+enzyme_functions = 'tf,tr,ef,er,ribosome,binding'.split(',')
+all_reactions = [Reaction(['EH'], ['E', 'H'], 1, 0.2), 
+                 Reaction(['EL'], ['E', 'L'], 1, 0.5), 
+                 Reaction(['FG'], ['F', 'G'], 0.85, 1), 
+                 Reaction(['FK'], ['F', 'K'], 0.3, 1), 
+                 Reaction(['IL'], ['I', 'L'], 0.8, 1), 
+                 Reaction(['IH'], ['I', 'H'], 1, 0.5), 
+                 Reaction(['JK'], ['J', 'K'], 0.07, 1), 
+                 Reaction(['JG'], ['J', 'G'], 0.3, 1), 
+                 Reaction(['EH','IL'], ['EL', 'IH'], 1, 1), 
+                 Reaction(['FG','JK'], ['FK', 'JG'], 1, 1),
+                 Reaction(['protein'], ['JG'], 1, 0.25)]
 
 TRANSLATE = dict(zip(codons, amino_acids)) 
 aa_to_metabolite = dict(zip(amino_acids, all_metabolites))  # Doesn't map final metabolite, JG
 aa_to_function = dict(zip(amino_acids, enzyme_functions))
-
-all_reactions = {'L': Reaction(['EH'], ['E', 'H'], 1, 0.2), 
-                 'M': Reaction(['EL'], ['E', 'L'], 1, 0.5), 
-                 'N': Reaction(['FG'], ['F', 'G'], 0.85, 1), 
-                 'O': Reaction(['FK'], ['F', 'K'], 0.3, 1), 
-                 'P': Reaction(['IL'], ['I', 'L'], 0.8, 1), 
-                 'Q': Reaction(['IH'], ['I', 'H'], 1, 0.5), 
-                 'R': Reaction(['JK'], ['J', 'K'], 0.07, 1), 
-                 'S': Reaction(['JG'], ['J', 'G'], 0.3, 1), 
-                 'T': Reaction(['EH','IL'], ['EL', 'IH'], 1, 1), 
-                 'U': Reaction(['FG','JK'], ['FK', 'JG'], 1, 1),
-                 'V': Reaction(['protein'], ['JG'], 1, 0.25)}
+aa_to_reaction = dict(zip(amino_acids, all_reactions))
