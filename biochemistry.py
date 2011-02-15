@@ -14,10 +14,13 @@ def Translate(mRNA):
     return peptide
 
 class Metabolite:
-    def __init__(self, name, volume):
+    def __init__(self, name, volume=100.0):
         self.name = name
-        self.amount = 0.0
         self.volume = volume
+        self.amount = 0.0
+        
+    def concentration(self):
+        return 100.0 * self.amount / self.volume
 
 class Reaction:
     def __init__(self, substrates, products, forward_rate, reverse_rate):
@@ -78,9 +81,9 @@ class Protein():
 
     # Enzymes
             elif domain[0] == 'e':
-                if aa in all_reactions.keys():
+                if aa in aa_to_reaction.keys():
                     catalytic = True
-                    r = all_reactions[aa]
+                    r = aa_to_reaction[aa]
 
                     if domain[1] == 'f':
                         self.setMetabolites(r.substrates, r.products)
@@ -136,13 +139,10 @@ class Protein():
                 print "* at sequence: %s" % seq
 
     def outputReaction(self):
-        for s in self.substrates:
-            print s.name,
+        print ' + '.join([s.name for s in self.substrates]),
         print '->',
-
-        for p in self.products:
-            print p.name,
-        print "\t%f" % self.net_rxn
+        print ' + '.join([p.name for p in self.substrates])
+        #print "\t%f" % self.net_rxn
 
     def degrade(self):
         degradation = self.amount * self.degradation_rate
