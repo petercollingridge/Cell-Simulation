@@ -1,13 +1,19 @@
 import virtualCell
 
+DNA  = 'BB AC'          # bind RNA
+DNA += 'AA BBBABBBA AA' # At QPQP
+DNA += 'ACCD'           # RNAse
+DNA += 'ADAA'           # ATPase
+DNA += 'DDAA'           # End
+
+DNA += 'BB AB'          # bind DNA
+DNA += 'AA BBBABBBA AA' # At QPQP
+DNA += 'ACCC'           # DNAse
+DNA += 'ADAA'           # ATPase
+DNA += 'DD'             # End
+
 solution = virtualCell.Solution(10000.0)
-solution.setMetabolites()
-solution.addCell(1000.0)
-
-DNA = 'BB BBBABBBA AA BBAA BBBAADAADADDAA'
-
-cell = solution.cells[-1]
-cell.setMetabolites()
+cell = solution.addCell(1000.0)
 cell.addDNA(DNA)
 
 print "\n-Proteins-"

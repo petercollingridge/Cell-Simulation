@@ -129,20 +129,26 @@ class Protein():
         for p in products:
             self.products.append(sol2.metabolites[p])
 
-    def outputProperties(self):
+    def output(self):
         print "Sequence: %s" % self.sequence
         print "Amount:   %s" % self.amount
         
-        if self.binding_partner:
-            print "* binds: %s" % self.binding_partner
-            for seq in self.binding_seqs:
-                print "* at sequence: %s" % seq
+        if self.substrates: self._outputReaction()
+        if self.binding_partner: self._outputBindingProperties()
 
-    def outputReaction(self):
-        print ' + '.join([s.name for s in self.substrates]),
-        print '->',
-        print ' + '.join([p.name for p in self.substrates])
-        #print "\t%f" % self.net_rxn
+    def _outputReaction(self):
+        if self.substrates:
+            print "Catalyses:"
+            print " ",
+            print ' + '.join([s.name for s in self.substrates]),
+            print '->',
+            print ' + '.join([p.name for p in self.products])
+            #print "\t%f" % self.net_rxn
+            
+    def _outputBindingProperties(self):
+        print "Binds %s:" % self.binding_partner
+        for seq in self.binding_seqs:
+            print " With sequence %s" % seq
 
     def degrade(self):
         degradation = self.amount * self.degradation_rate
@@ -196,7 +202,8 @@ all_reactions = [Reaction(['EH'], ['E', 'H'], 1, 0.2),
                  Reaction(['JG'], ['J', 'G'], 0.3, 1), 
                  Reaction(['EH','IL'], ['EL', 'IH'], 1, 1), 
                  Reaction(['FG','JK'], ['FK', 'JG'], 1, 1),
-                 Reaction(['protein'], ['JG'], 1, 0.25)]
+                 Reaction(['protein'], ['JG'], 1, 0.25),
+                 Reaction(['RNA'], ['IL'], 1, 0.25)]
 
 TRANSLATE = dict(zip(codons, amino_acids)) 
 aa_to_metabolite = dict(zip(amino_acids, all_metabolites))  # Doesn't map final metabolite, JG

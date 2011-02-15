@@ -34,7 +34,7 @@ class Solution():
     def output(self, output_type):
         if output_type == 'proteins':
             for protein in self.proteins.values():
-                protein.outputReaction()
+                protein.output()
                 
         elif output_type == 'metabolites':
             metabolites = self.metabolites.keys()
@@ -58,6 +58,9 @@ class Cell(Solution):
         
         for name, metabolite in self.metabolites.items():
             metabolite.name = "%s(in)" % name
+
+        self.metabolites['RNA'] = biochemistry.Metabolite('RNA', self.volume)
+        self.metabolites['protein'] = biochemistry.Metabolite('protein', self.volume)
 
     def addDNA(self, DNA_string):
         DNA = DNA_string.rstrip('\n').replace(' ', '')
