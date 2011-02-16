@@ -18,8 +18,11 @@ class Solution():
         for name, amount in metabolites.items():
             self.metabolites[name].amount = amount * self.volume
 
-    def addRNA(self, RNA, amount):
-        self.RNA[RNA] = self.RNA.get(RNA, 0.0) + amount
+    def addRNA(self, RNA_sequence, amount):
+        if RNA_sequence in self.RNA:
+            self.RNA[RNA_sequence].amount += amount
+        else:
+            self.RNA[RNA_sequence] = biochemistry.RNA(RNA_sequence, amount)
 
     def addCell(self, volume, metabolites='default'):
         new_cell = Cell(volume, self, metabolites)

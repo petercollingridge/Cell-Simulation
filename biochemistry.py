@@ -28,7 +28,19 @@ class Reaction:
         self.products = products
         self.rates = (forward_rate, reverse_rate)
 
-class Protein():
+class RNA:
+    def __init__(self, sequence, amount=0.0):
+        self.sequence = sequence
+        self.amount = amount
+        self.sites = {}
+        
+class BindingDomain:
+    def __init__(self, sequence, type):
+        self.sequence = sequence
+        self.type = type
+        self.targets = {}
+    
+class Protein:
     def __init__(self, sequence, solution):
         self.sequence = sequence
         self.length   = len(sequence)
@@ -42,10 +54,9 @@ class Protein():
         self.net_rxn = 0
 
         self.functions = [self.degrade]
-        self.binding_seqs = []
+        self.binding_domains = []
         self.substrates = []
         self.products = []
-        self.binding_partner = None
         
         self._interpretSequence()
 
@@ -54,13 +65,14 @@ class Protein():
         catalytic = False
         domain = None
         binding_seq = ''
+        binding_partner = None
 
         for aa in self.sequence:
 
-    # Find enzyme function
+        # Find enzyme function
             if domain == None:
                 domain = aa_to_function.get(aa)
-                print 'Found domain ', domain
+                #print 'Found domain ', domain
 
                 if domain == 'ribosome':
                     ribosome = True
@@ -68,7 +80,7 @@ class Protein():
                     self.r_rate *= 0.25
                     self.substrates.append(self.solution.metabolites['JG'])
 
-    # Transporters
+        # Transporters
             elif domain[0] == 't':
                 catalytic = True
                 m = aa_to_metabolite[aa]
@@ -79,7 +91,7 @@ class Protein():
                     self.setMetabolites([m], [m], self.solution, self.solution.solution)
                 domain = None
 
-    # Enzymes
+        # Enzymes
             elif domain[0] == 'e':
                 if aa in aa_to_reaction.keys():
                     catalytic = True
@@ -95,21 +107,21 @@ class Protein():
                         self.r_rate *= r.rates[0]
                     domain = None
 
-    # Binding Protein                    
+        # Binding Proteins
             elif domain == 'binding':
                 if aa == 'L':
                     domain = 'binding sequence'
                     binding_seq = ''
                     
                 elif aa == 'M':
-                    self.binding_partner = 'DNA'
+                    binding_partner = 'DNA'
                 elif aa == 'N':
-                    self.binding_partner = 'RNA'
+                    binding_partner = 'RNA'
                     
             elif domain == 'binding sequence':
                 if aa == 'L':
-                    if binding_seq:
-                        self.binding_seqs.append(binding_seq)
+                    if binding_seq and binding_partner:
+                        self.binding_domains.append(BindingDomain(binding_seq, binding_partner))
                         domain = None
                 else:
                     binding_seq += aa
@@ -134,21 +146,17 @@ class Protein():
         print "Amount:   %s" % self.amount
         
         if self.substrates: self._outputReaction()
-        if self.binding_partner: self._outputBindingProperties()
+        if self.binding_domains: self._outputBindingProperties()
+        print
 
     def _outputReaction(self):
-        if self.substrates:
-            print "Catalyses:"
-            print " ",
-            print ' + '.join([s.name for s in self.substrates]),
-            print '->',
-            print ' + '.join([p.name for p in self.products])
-            #print "\t%f" % self.net_rxn
+        print "Catalyses:"
+        print " %s -> %s" % (' + '.join([s.name for s in self.substrates]), ' + '.join([p.name for p in self.products]))
+        #print "\t%f" % self.net_rxn
             
     def _outputBindingProperties(self):
-        print "Binds %s:" % self.binding_partner
-        for seq in self.binding_seqs:
-            print " With sequence %s" % seq
+        for site in self.binding_domains:
+            print "Binds %s with sequence %s" % (site.type, site.sequence)
 
     def degrade(self):
         degradation = self.amount * self.degradation_rate
