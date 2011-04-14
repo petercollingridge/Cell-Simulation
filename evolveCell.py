@@ -2,7 +2,7 @@ import virtualCell
 import random
 
 def addRandomSequence(seq):
-    while random.random() < 0.995:
+    while random.random() < 0.99:
         seq += random.choice(['A', 'B', 'C', 'D'])
     return seq
 

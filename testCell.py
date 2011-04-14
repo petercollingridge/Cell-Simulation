@@ -10,9 +10,7 @@ solution_metabolites['EL'] = 0.01
 solution = virtualCell.Solution(24000.0, solution_metabolites)
 
 # Initilise Cell
-DNA = 'BACBCBCCDBB DDAA DBCCAABCABACCDCBDCBDDCA DDAA DADBABBABDBCAACDD DDAA BABDBBAD DDAA BABDBBADDDAADADBABBABDBCAACDDDDAABABDBBADAD'
-DNA = 'CABCAA-CABCAA-BACC-BACD-BADD-BAADBBBC-BAACBBBA-BCAC-BCAD-BAABBCAA-BCAABDBB'.replace('-', 'DDAA')
-DNA = 'CBBABAAA-BAAA-BAAD-BACB-BACB-BCAB-BCAABABD'.replace('-', 'DDAA')
+DNA = 'BB BBBABBBA AA BBAA BBBAADAADADDAA'
 cell = solution.addCell(volume=1000.0, metabolites='default')
 cell.addDNA(DNA)
 
@@ -25,15 +23,15 @@ print "\n-Proteins-"
 cell.output('proteins')    
 
 # Run Simulation
-solution.update(2000)
+#solution.update(2000)
 
 # Output
-print "\t-Solution-\t-Cell-"
-metabolites = solution.metabolites.keys()
-metabolites.sort()
+#print "\n\t-Solution-\t-Cell-"
+#metabolites = solution.metabolites.keys()
+#metabolites.sort()
 
-for m in metabolites:
-    print '%s\t%.3f%%\t\t%2.3f%%' % (m, solution.metabolites[m].concentration(), cell.metabolites[m].concentration())
+#for m in metabolites:
+#    print '%s\t%.3f%%\t\t%2.3f%%' % (m, solution.metabolites[m].concentration(), cell.metabolites[m].concentration())
 
-print "\n-Proteins-"   
+#print "\n-Proteins-"   
 #cell.output('proteins')    
