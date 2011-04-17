@@ -31,7 +31,5 @@ print "\n-Proteins-"
 cell.output('proteins')
 print
 
-# Find binding sites:
-for protein in cell.proteins.values():
-    for domain in protein.binding_domains:
-        domain.findPromoterStrengths(cell.genes)
+solution.update(10)
+
