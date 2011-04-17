@@ -10,7 +10,8 @@ solution_metabolites['EL'] = 0.01
 solution = virtualCell.Solution(24000.0, solution_metabolites)
 
 # Initilise Cell
-DNA = 'BB BBBABBBA AA BBAA BBBAADAADADDAA'
+DNA = 'DDAA BB BBBABBBA AA BBAA BBBAADAADADD'
+DNA += 'DDAA AA CB DD'
 cell = solution.addCell(volume=1000.0, metabolites='default')
 cell.addDNA(DNA)
 

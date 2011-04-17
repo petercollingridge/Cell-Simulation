@@ -1,15 +1,13 @@
-from bindingInteractions import findBindingSites
-
-def Translate(mRNA):
+def Translate(DNA):
     """ Takes a DNA sequence (using nucleotides: A,B,C,D)
         Returns a peptide sequence (using amino acids L-Z) """
         
     peptide = ''
     
     # Splits bases into pairs and cuts off final base if there is an odd number
-    for n in range(1, len(mRNA), 2):        
-        if mRNA[n-1:n+1] == 'DD': return peptide
-        peptide += TRANSLATE[mRNA[n-1:n+1]]
+    for n in range(1, len(DNA), 2):        
+        if DNA[n-1:n+1] == 'DD': return peptide
+        peptide += TRANSLATE[DNA[n-1:n+1]]
         
     return peptide
 
@@ -28,17 +26,43 @@ class Reaction:
         self.products = products
         self.rates = (forward_rate, reverse_rate)
 
-class RNA:
-    def __init__(self, sequence, amount=0.0):
-        self.sequence = sequence
-        self.amount = amount
-        self.sites = {}
-        
 class BindingDomain:
-    def __init__(self, sequence, type):
+    def __init__(self, sequence):
         self.sequence = sequence
-        self.type = type
         self.targets = {}
+        
+    def findPromoterStrengths(self, genes):
+        print "Testing", self.sequence,
+        for gene in genes:
+            print "with", gene.promoter  
+            
+            if len(self.sequence) > 3:
+                i1 = amino_acids[self.sequence[0]].couplets1[gene.promoter[0:2]]
+                i2 = amino_acids[self.sequence[1]].couplets2[gene.promoter[1:3]]
+                i3 = amino_acids[self.sequence[2]].couplets1[gene.promoter[3:5]]
+                i4 = amino_acids[self.sequence[3]].couplets2[gene.promoter[4:6]]
+                c1, c2, c3 = i1 + i2, i2 + i3, i3 + i4
+
+                if c1 > 0 and c2 > 0 and c3 > 0:
+                    print "Strength", c1 * c2 * c3
+
+class AminoAcid:
+    def __init__(self, interactions):
+        self.interactions = {}
+        self.couplets1 = {}
+        self.couplets2 = {}
+
+        for nt in range(len(nucleotides)):
+            self.interactions[nucleotides[nt]] = int(interactions[nt])
+
+        for nt1, nt2 in [(nt1, nt2) for nt1 in nucleotides for nt2 in nucleotides]:
+            self.couplets1[nt1+nt2] = 0.7 * self.interactions[nt1] + 0.3 * self.interactions[nt2]
+            self.couplets2[nt1+nt2] = 0.4 * self.interactions[nt1] + 0.6 * self.interactions[nt2]
+
+class Gene:
+    def __init__(self, sequence):
+        self.promoter = sequence[:6]
+        self.ORF = sequence[6:]
     
 class Protein:
     def __init__(self, sequence, solution):
@@ -65,7 +89,6 @@ class Protein:
         catalytic = False
         domain = None
         binding_seq = ''
-        binding_partner = None
 
         for aa in self.sequence:
 
@@ -113,15 +136,10 @@ class Protein:
                     domain = 'binding sequence'
                     binding_seq = ''
                     
-                elif aa == 'M':
-                    binding_partner = 'DNA'
-                elif aa == 'N':
-                    binding_partner = 'RNA'
-                    
             elif domain == 'binding sequence':
                 if aa == 'L':
-                    if binding_seq and binding_partner:
-                        self.binding_domains.append(BindingDomain(binding_seq, binding_partner))
+                    if binding_seq:
+                        self.binding_domains.append(BindingDomain(binding_seq))
                         domain = None
                 else:
                     binding_seq += aa
@@ -156,7 +174,7 @@ class Protein:
             
     def _outputBindingProperties(self):
         for site in self.binding_domains:
-            print "Binds %s with sequence %s" % (site.type, site.sequence)
+            print "Binds DNA with sequence %s" % (site.sequence)
 
     def degrade(self):
         degradation = self.amount * self.degradation_rate
@@ -197,7 +215,13 @@ class Protein:
 nucleotides = ['A', 'B', 'C', 'D']
 codons = ['%s%s' % (a, b) for a in nucleotides for b in nucleotides]
 
-amino_acids = 'L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z, '.split(',')
+amino_acids = {}
+for line in open('aminoAcids.txt'):
+    data = line.rstrip('\n').split('\t')
+    interactions = data[1].split(',')
+    amino_acids[data[0]] = AminoAcid(interactions)
+
+amino_acid_code = 'L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z, '.split(',')
 all_metabolites = 'E,F,G,H,I,J,K,L,EH,EL,FG,FK,IL,IH,JK,JG'.split(',')
 enzyme_functions = 'tf,tr,ef,er,ribosome,binding'.split(',')
 all_reactions = [Reaction(['EH'], ['E', 'H'], 1, 0.2), 
@@ -210,10 +234,9 @@ all_reactions = [Reaction(['EH'], ['E', 'H'], 1, 0.2),
                  Reaction(['JG'], ['J', 'G'], 0.3, 1), 
                  Reaction(['EH','IL'], ['EL', 'IH'], 1, 1), 
                  Reaction(['FG','JK'], ['FK', 'JG'], 1, 1),
-                 Reaction(['protein'], ['JG'], 1, 0.25),
-                 Reaction(['RNA'], ['IL'], 1, 0.25)]
+                 Reaction(['protein'], ['JG'], 1, 0.25)]
 
-TRANSLATE = dict(zip(codons, amino_acids)) 
-aa_to_metabolite = dict(zip(amino_acids, all_metabolites))  # Doesn't map final metabolite, JG
-aa_to_function = dict(zip(amino_acids, enzyme_functions))
-aa_to_reaction = dict(zip(amino_acids, all_reactions))
+TRANSLATE = dict(zip(codons, amino_acid_code)) 
+aa_to_metabolite = dict(zip(amino_acid_code, all_metabolites))  # Doesn't map final metabolite, JG
+aa_to_function = dict(zip(amino_acid_code, enzyme_functions))
+aa_to_reaction = dict(zip(amino_acid_code, all_reactions))

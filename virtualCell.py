@@ -6,7 +6,6 @@ class Solution():
     def __init__(self, volume, metabolites='default'):
         self.volume = volume
         self.DNA = []
-        self.RNA = {}
         self.cells = []
         self.proteins = {}
         
@@ -17,12 +16,6 @@ class Solution():
     def _setMetabolites(self, metabolites):
         for name, amount in metabolites.items():
             self.metabolites[name].amount = amount * self.volume
-
-    def addRNA(self, RNA_sequence, amount):
-        if RNA_sequence in self.RNA:
-            self.RNA[RNA_sequence].amount += amount
-        else:
-            self.RNA[RNA_sequence] = biochemistry.RNA(RNA_sequence, amount)
 
     def addCell(self, volume, metabolites='default'):
         new_cell = Cell(volume, self, metabolites)
@@ -61,21 +54,18 @@ class Cell(Solution):
         
         for name, metabolite in self.metabolites.items():
             metabolite.name = "%s(in)" % name
-
-        self.metabolites['RNA'] = biochemistry.Metabolite('RNA', self.volume)
         self.metabolites['protein'] = biochemistry.Metabolite('protein', self.volume)
 
     def addDNA(self, DNA_string):
-        DNA = DNA_string.rstrip('\n').replace(' ', '')
+        DNA = DNA_string.rstrip().replace(' ', '')
         self.DNA.append(DNA)
         
-        genes = DNA.split('DDAA')
-        self.genes.extend(genes)
-        
-        for gene in genes:
-            if len(gene) > 0:
-                peptide = biochemistry.Translate(gene)
-                print gene, peptide
+        for gene_seq in DNA.split('DDAA'):
+            if len(gene_seq) > 6:
+                gene = biochemistry.Gene(gene_seq)
+                self.genes.append(gene)
+                peptide = biochemistry.Translate(gene.ORF)
+                print "DNA: %s -> %s" % (gene.ORF, peptide)
                 self.addProtein(peptide, 0.0)
 
     def addProtein(self, protein, amount):
