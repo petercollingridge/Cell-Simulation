@@ -50,23 +50,22 @@ class Cell(Solution):
         Solution.__init__(self, volume, metabolites)
         self.solution = solution    # Solution in which the cell exists
         self.genes = []
-        self.new_protein = 0.0
         
         for name, metabolite in self.metabolites.items():
             metabolite.name = "%s(in)" % name
-        self.metabolites['protein'] = biochemistry.Metabolite('protein', self.volume)
 
     def addDNA(self, DNA_string):
         DNA = DNA_string.rstrip().replace(' ', '')
         self.DNA.append(DNA)
         
-        for gene_seq in DNA.split('DDAA'):
+        for gene_seq in DNA.split('DDAAAA'):
             if len(gene_seq) > 6:
                 gene = biochemistry.Gene(gene_seq)
                 self.genes.append(gene)
-                peptide = biochemistry.Translate(gene.ORF)
-                print "DNA: %s -> %s" % (gene.ORF, peptide)
-                self.addProtein(peptide, 0.0)
+                
+        for gene in self.genes:
+            self.addProtein(gene.protein_code, 0.0)
+            #print "DNA: %s -> %s" % (gene.ORF, peptide)
 
     def addProtein(self, protein, amount):
         if protein not in self.proteins:
@@ -74,12 +73,5 @@ class Cell(Solution):
         self.proteins[protein].amount += amount
 
     def update(self):
-        # Test protein binding RNA, DNA, protein
-        
         for p in self.proteins.values():
             p.update()
-        self.new_protein /= len(self.proteins.values())
-
-        for p in self.proteins.values():
-            p.amount += self.new_protein / p.length
-        self.new_protein = 0

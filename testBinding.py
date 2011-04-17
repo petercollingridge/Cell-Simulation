@@ -1,35 +1,27 @@
 import virtualCell
 
-def determineBinding(cell):
-    total_protein = sum([protein.amount for protein in cell.proteins.values()])
-
-    for protein in cell.proteins.values():
-        p = protein.amount/(total_protein+total_RNA + 20.0)
-        
-        for domain in protein.binding_domains:
-            print domain.sequence
-            for target, sites in domain.targets.items():
-                print target.sequence,
-                print "Each site binds", target.amount*p/len(sites)
-
 DNA  = 'AADADD'         # Promoter
 DNA += 'BB'             # Bind DNA
 DNA += 'AA BBBABBBA AA' # At QPQP
-DNA += 'ACCC'           # DNAse
-DNA += 'ADAA'           # ATPase
-DNA += 'DDAA'           # End
+DNA += 'BA'             # Ribosome
+DNA += 'ACAA'           # ATPase
+DNA += 'DDAAAA'         # End
 
-DNA += 'ADADAD'         # Promoter
+DNA += 'AADAAD'         # Promoter
 DNA += 'AA CB DD'       # EL pore
 
 solution = virtualCell.Solution(10000.0)
 cell = solution.addCell(1000.0)
+cell.metabolites['EH'].amount += 80     # Add ATP
+cell.metabolites['JG'].amount += 80     # Add Amino acids
+
 cell.addDNA(DNA)
-cell.addProtein('QLQPQPLNVOL', 1.0)
+cell.addProtein('QLQPQPLPNL', 1.0)
 
-print "\n-Proteins-"
+print "\n -Proteins-"
+#cell.output('proteins')
+#cell.output('metabolites')
+
+solution.update(20)
 cell.output('proteins')
-print
-
-solution.update(10)
-
+cell.output('metabolites')

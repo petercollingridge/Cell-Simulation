@@ -38,7 +38,7 @@ class BindingDomain:
             i3 = amino_acids[self.sequence[2]].couplets1[gene.promoter[3:5]]
             i4 = amino_acids[self.sequence[3]].couplets2[gene.promoter[4:6]]
             c1, c2, c3 = i1 + i2, i2 + i3, i3 + i4
-
+            
             if c1 > 0 and c2 > 0 and c3 > 0:
                 self.targets[gene] = [c1 * c2 * c3, 0.0]
 
@@ -58,7 +58,8 @@ class AminoAcid:
 class Gene:
     def __init__(self, sequence):
         self.promoter = sequence[:6]
-        self.ORF = sequence[6:]
+        #self.ORF = sequence[6:]
+        self.protein_code = Translate(sequence[6:])
         self.occupancy = 0
     
 class Protein:
@@ -89,7 +90,6 @@ class Protein:
         binding_seq = ''
         
         for aa in self.sequence:
-            
             # Find enzyme function
             if domain == None:
                 domain = aa_to_function.get(aa)
@@ -136,18 +136,18 @@ class Protein:
             
             elif domain == 'binding sequence':
                 if aa == 'L':
-                    if binding_seq and len(binding_seq) >=6 :
+                    if binding_seq and len(binding_seq) >=4 :
                         self.binding_domains.append(BindingDomain(binding_seq))
-                        domain = None
+                    domain = None
                 else:
                     binding_seq += aa
             
-            if self.binding_domains:
-                self.functions.append(self.bind)
-            if ribosome:
-                self.functions.extend([self.find_reaction_rate, self.translate])
-            elif catalytic:
-                self.functions.extend([self.find_reaction_rate, self.catalyse])
+        if self.binding_domains:
+            self.functions.append(self.bind)
+        if ribosome:
+            self.functions.extend([self.find_reaction_rate, self.translate])
+        elif catalytic:
+            self.functions.extend([self.find_reaction_rate, self.catalyse])
         
         for domain in self.binding_domains:
             domain.findPromoterStrengths(self.solution.genes)
@@ -168,6 +168,7 @@ class Protein:
         
         if self.substrates: self._outputReaction()
         if self.binding_domains: self._outputBindingProperties()
+        print
 
     def _outputReaction(self):
         print "Catalyses:"
@@ -193,9 +194,10 @@ class Protein:
         for p in self.products:
             product_bound *= p.amount / p.volume
         
-        self.net_rxn = (substrate_bound - product_bound) * self.amount
+        self.net_rxn = substrate_bound - product_bound
 
     def catalyse(self):
+        self.net_rxn *= self.amount
         for s in self.substrates:
             s.amount -= self.net_rxn
         for p in self.products:
@@ -207,21 +209,24 @@ class Protein:
         for domain in self.binding_domains:
             for gene, (strength, amount_bound) in domain.targets.items():
                 dissociation = amount_bound * strength / (strength + 1.0)
-                association = ((1.0-gene.occupancy)/len(self.solution.genes))*free_protein/(free_protein*len(self.binding_domains)+1.0) - dissociation
+                association  = ((1.0-gene.occupancy)/len(self.solution.genes))*free_protein/(free_protein*len(self.binding_domains)+1.0) - dissociation
                 gene.occupancy += association
                 domain.targets[gene][1] += association
-                self.amount_bound += association
-        
-        print self.amount_bound
+                self.amount_bound += association             
+                      
+        #print "amount bound", self.amount_bound
 
     def translate(self):
         if self.net_rxn > 0 and self.amount_bound > 0:
+            for domain in self.binding_domains:
+                for gene, (strength, amount_bound) in domain.targets.items():
+                    self.solution.addProtein(gene.protein_code, self.net_rxn *amount_bound)
+            
+            self.net_rxn *= self.amount_bound
             for s in self.substrates:
                 s.amount -= self.net_rxn
             for p in self.products:
                 p.amount += self.net_rxn
-            
-            self.solution.new_protein += self.net_rxn
 
     def update(self):
         for function in self.functions:
