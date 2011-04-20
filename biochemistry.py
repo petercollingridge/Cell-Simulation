@@ -68,7 +68,7 @@ class Protein:
         self.length   = len(sequence)
         self.solution = solution
         
-        self.degradation_rate = 0.00001
+        self.degradation_rate = 0.00005
         self.amount = 0.0
         self.amount_bound = 0.0
         
@@ -208,8 +208,8 @@ class Protein:
         
         for domain in self.binding_domains:
             for gene, (strength, amount_bound) in domain.targets.items():
-                dissociation = amount_bound * strength / (strength + 1.0)
-                association  = ((1.0-gene.occupancy)/len(self.solution.genes))*free_protein/(free_protein*len(self.binding_domains)+1.0) - dissociation
+                association  = ((1.0-gene.occupancy)/len(self.solution.genes))*free_protein/(free_protein*len(self.binding_domains)+1.0)
+                association -= (amount_bound+association) * 1.0 / (strength + 1.0)
                 gene.occupancy += association
                 domain.targets[gene][1] += association
                 self.amount_bound += association             
@@ -220,7 +220,7 @@ class Protein:
         if self.net_rxn > 0 and self.amount_bound > 0:
             for domain in self.binding_domains:
                 for gene, (strength, amount_bound) in domain.targets.items():
-                    self.solution.addProtein(gene.protein_code, self.net_rxn *amount_bound)
+                    self.solution.addProtein(gene.protein_code, self.net_rxn *amount_bound/len(gene.protein_code))
             
             self.net_rxn *= self.amount_bound
             for s in self.substrates:

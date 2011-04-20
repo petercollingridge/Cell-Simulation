@@ -12,6 +12,9 @@ class Solution():
         self.metabolites = dict([(m, biochemistry.Metabolite(m, self.volume)) for m in biochemistry.all_metabolites])
         metabolite_dict = metabolites=='default' and default_metabolites or metabolites
         self._setMetabolites(metabolite_dict)
+        
+        for name, metabolite in self.metabolites.items():
+            metabolite.name = "%s(out)" % name
 
     def _setMetabolites(self, metabolites):
         for name, amount in metabolites.items():
@@ -27,12 +30,14 @@ class Solution():
             for cell in self.cells:
                 cell.update()
 
-    def output(self, output_type):
-        if output_type == 'proteins':
+    def output(self, output_type='all'):
+        if output_type == 'proteins' or output_type == 'all':
+            print "\n-Proteins-"
             for protein in self.proteins.values():
                 protein.output()
                 
-        elif output_type == 'metabolites':
+        elif output_type == 'metabolites' or output_type == 'all':
+            print "\n-Metabolites-"
             metabolites = self.metabolites.keys()
             metabolites.sort()
 
