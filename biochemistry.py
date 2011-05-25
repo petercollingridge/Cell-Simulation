@@ -68,7 +68,7 @@ class Protein:
         self.length   = len(sequence)
         self.solution = solution
         
-        self.degradation_rate = 0.00005
+        self.degradation_rate = 0.00002
         self.amount = 0.0
         self.amount_bound = 0.0
         
@@ -88,6 +88,7 @@ class Protein:
         catalytic = False
         domain = None
         binding_seq = ''
+        metabolite  = ''
         
         for aa in self.sequence:
             # Find enzyme function
@@ -103,14 +104,18 @@ class Protein:
             
             # Transporters
             elif domain[0] == 't':
-                catalytic = True
-                m = aa_to_metabolite[aa]
-                
-                if domain[1] == 'f':
-                    self.setMetabolites([m], [m], self.solution.solution)
+                if aa == 'L':
+                    if metabolite in all_metabolites:
+                        catalytic = True
+                        if domain[1] == 'f':
+                            self.setMetabolites([metabolite], [metabolite], self.solution.solution)
+                        else:
+                            self.setMetabolites([metabolite], [metabolite], self.solution, self.solution.solution)
+                    domain = None
+                    direction = None
+                    metabolite = ''
                 else:
-                    self.setMetabolites([m], [m], self.solution, self.solution.solution)
-                domain = None
+                    metabolite += aa_to_atom.get(aa)
             
             # Enzymes
             elif domain[0] == 'e':
@@ -235,29 +240,35 @@ class Protein:
 # Map codons to enzyme functions
 nucleotides = ['A', 'B', 'C', 'D']
 codons = ['%s%s' % (a, b) for a in nucleotides for b in nucleotides]
+amino_acid_code = 'LMNOPQRSTUVWXYZ'
+
+atoms = [['E', 'F', 'G', 'H'],
+         ['I', 'J', 'K', 'L']]
+diatoms = [atoms[x][y]+atoms[z][3-y] for x in (0,1) for y in (0,1) for z in (0,1)]
+codon_to_atom = dict(zip(amino_acid_code[1:],atoms[0]+atoms[1]))
+
+all_metabolites = 'E,F,G,H,I,J,K,L,EH,EL,FG,FK,IL,IH,JK,JG'.split(',')
+enzyme_functions = 'tf,tr,ef,er,ribosome,binding'.split(',')
+all_reactions = [Reaction(['EH'], ['E', 'H'], 1, 0.2),
+                 Reaction(['EL'], ['E', 'L'], 1, 0.5),
+                 Reaction(['FG'], ['F', 'G'], 0.85, 1),
+                 Reaction(['FK'], ['F', 'K'], 0.3, 1),
+                 Reaction(['IL'], ['I', 'L'], 0.8, 1),
+                 Reaction(['IH'], ['I', 'H'], 1, 0.5),
+                 Reaction(['JK'], ['J', 'K'], 0.07, 1),
+                 Reaction(['JG'], ['J', 'G'], 0.3, 1),
+                 Reaction(['EH','IL'], ['EL', 'IH'], 1, 1),
+                 Reaction(['FG','JK'], ['FK', 'JG'], 1, 1),
+                 Reaction(['protein'], ['JG'], 1, 0.25),
+                 Reaction(['RNA'], ['IL'], 1, 0.25)]
+
+TRANSLATE = dict(zip(codons, amino_acid_code))
+aa_to_function = dict(zip(amino_acid_code, enzyme_functions))
+aa_to_reaction = dict(zip(amino_acid_code, all_reactions))
+aa_to_atom = dict(zip(amino_acid_code[1:], all_metabolites[:8]))
 
 amino_acids = {}
 for line in open('aminoAcids.txt'):
     data = line.rstrip('\n').split('\t')
     interactions = data[1].split(',')
     amino_acids[data[0]] = AminoAcid(interactions)
-
-amino_acid_code = 'L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z, '.split(',')
-all_metabolites = 'E,F,G,H,I,J,K,L,EH,EL,FG,FK,IL,IH,JK,JG'.split(',')
-enzyme_functions = 'tf,tr,ef,er,ribosome,binding'.split(',')
-all_reactions = [Reaction(['EH'], ['E', 'H'], 1, 0.2), 
-                 Reaction(['EL'], ['E', 'L'], 1, 0.5), 
-                 Reaction(['FG'], ['F', 'G'], 0.85, 1), 
-                 Reaction(['FK'], ['F', 'K'], 0.3, 1), 
-                 Reaction(['IL'], ['I', 'L'], 0.8, 1), 
-                 Reaction(['IH'], ['I', 'H'], 1, 0.5), 
-                 Reaction(['JK'], ['J', 'K'], 0.07, 1), 
-                 Reaction(['JG'], ['J', 'G'], 0.3, 1), 
-                 Reaction(['EH','IL'], ['EL', 'IH'], 1, 1), 
-                 Reaction(['FG','JK'], ['FK', 'JG'], 1, 1),
-                 Reaction(['protein'], ['JG'], 1, 0.25)]
-
-TRANSLATE = dict(zip(codons, amino_acid_code)) 
-aa_to_metabolite = dict(zip(amino_acid_code, all_metabolites))  # Doesn't map final metabolite, JG
-aa_to_function = dict(zip(amino_acid_code, enzyme_functions))
-aa_to_reaction = dict(zip(amino_acid_code, all_reactions))
