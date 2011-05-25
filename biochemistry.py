@@ -68,7 +68,7 @@ class Protein:
         self.length   = len(sequence)
         self.solution = solution
         
-        self.degradation_rate = 0.00002
+        self.degradation_rate = 0.000004
         self.amount = 0.0
         self.amount_bound = 0.0
         
@@ -103,7 +103,7 @@ class Protein:
                     self.substrates.append(self.solution.metabolites['JG'])
             
             # Transporters
-            elif domain[0] == 't':
+            elif domain.startswith('t'):
                 if aa == 'L':
                     if metabolite in all_metabolites:
                         catalytic = True
@@ -115,10 +115,10 @@ class Protein:
                     direction = None
                     metabolite = ''
                 else:
-                    metabolite += aa_to_atom.get(aa)
+                    metabolite += aa_to_atom.get(aa, '')
             
             # Enzymes
-            elif domain[0] == 'e':
+            elif domain.startswith('e'):
                 if aa in aa_to_reaction.keys():
                     catalytic = True
                     r = aa_to_reaction[aa]
@@ -258,9 +258,7 @@ all_reactions = [Reaction(['EH'], ['E', 'H'], 1, 0.2),
                  Reaction(['JK'], ['J', 'K'], 0.07, 1),
                  Reaction(['JG'], ['J', 'G'], 0.3, 1),
                  Reaction(['EH','IL'], ['EL', 'IH'], 1, 1),
-                 Reaction(['FG','JK'], ['FK', 'JG'], 1, 1),
-                 Reaction(['protein'], ['JG'], 1, 0.25),
-                 Reaction(['RNA'], ['IL'], 1, 0.25)]
+                 Reaction(['FG','JK'], ['FK', 'JG'], 1, 1)]
 
 TRANSLATE = dict(zip(codons, amino_acid_code))
 aa_to_function = dict(zip(amino_acid_code, enzyme_functions))
