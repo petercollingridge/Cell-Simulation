@@ -1,6 +1,6 @@
 import biochemistry
 
-default_metabolites = dict([(m, 0.08/2 ** i) for i, m in enumerate(biochemistry.all_metabolites[:8])])
+default_metabolites = dict([(m, 0.08/2 ** i) for i, m in enumerate(biochemistry.CHEMICALS[:8])])
 
 class Solution():
     def __init__(self, volume, metabolites='default'):
@@ -9,7 +9,7 @@ class Solution():
         self.cells = []
         self.proteins = {}
         
-        self.metabolites = dict([(m, biochemistry.Metabolite(m, self.volume)) for m in biochemistry.all_metabolites])
+        self.metabolites = dict([(m, biochemistry.Metabolite(m, self.volume)) for m in biochemistry.CHEMICALS])
         metabolite_dict = metabolites=='default' and default_metabolites or metabolites
         self._setMetabolites(metabolite_dict)
         
@@ -51,7 +51,7 @@ class Solution():
                 cell.output('proteins')
 
 class Cell(Solution):
-    def __init__(self, volume, solution, metabolites):
+    def __init__(self, volume, solution, metabolites='default'):
         Solution.__init__(self, volume, metabolites)
         self.solution = solution    # Solution in which the cell exists
         self.genes = []
@@ -66,7 +66,8 @@ class Cell(Solution):
         for gene_seq in DNA.split('DDAAAA'):
             if len(gene_seq) > 6:
                 gene = biochemistry.Gene(gene_seq)
-                self.genes.append(gene)
+                if len(gene.protein_code) > 1:
+                    self.genes.append(gene)
                 
         for gene in self.genes:
             self.addProtein(gene.protein_code, 0.0)

@@ -1,3 +1,22 @@
+from chemistry import defineMetabolitesAndReactions
+
+# --- Initialise chemistry ---
+CHEMICALS, REACTIONS = defineMetabolitesAndReactions()
+default_metabolites = dict([(m, 0.08/2 ** i) for i, m in enumerate(CHEMICALS[:8])])
+
+# Map codons to enzyme functions
+NUCLEOTIDES = ['A', 'B', 'C', 'D']
+CODONS = [a+b for a in NUCLEOTIDES for b in NUCLEOTIDES]
+
+# --- Define mapping from amino acid sequence to protein function ---
+AMINO_ACID_CODE = 'LMNOPQRSTUVWXYZ'
+TRANSLATE = dict(zip(CODONS, AMINO_ACID_CODE))
+AA_TO_CHEMICAL = dict(zip([a+b for a in AMINO_ACID_CODE[1:] for b in AMINO_ACID_CODE[1:]], CHEMICALS))
+AA_TO_REACTION = dict(zip([a+b for a in AMINO_ACID_CODE[1:] for b in AMINO_ACID_CODE[1:]], REACTIONS))
+
+enzyme_functions = 'tf,tr,ef,er,ribosome,binding'.split(',')
+aa_to_function = dict(zip(AMINO_ACID_CODE, enzyme_functions))
+
 def Translate(DNA):
     """ Takes a DNA sequence (using nucleotides: A,B,C,D)
         Returns a peptide sequence (using amino acids L-Z) """
@@ -19,12 +38,6 @@ class Metabolite:
         
     def concentration(self):
         return 100.0 * self.amount / self.volume
-
-class Reaction:
-    def __init__(self, substrates, products, forward_rate, reverse_rate):
-        self.substrates = substrates
-        self.products = products
-        self.rates = (forward_rate, reverse_rate)
 
 class BindingDomain:
     def __init__(self, sequence):
@@ -48,10 +61,10 @@ class AminoAcid:
         self.couplets1 = {}
         self.couplets2 = {}
 
-        for nt in range(len(nucleotides)):
-            self.interactions[nucleotides[nt]] = int(interactions[nt])
+        for nt in range(len(NUCLEOTIDES)):
+            self.interactions[NUCLEOTIDES[nt]] = int(interactions[nt])
 
-        for nt1, nt2 in [(nt1, nt2) for nt1 in nucleotides for nt2 in nucleotides]:
+        for nt1, nt2 in [(nt1, nt2) for nt1 in NUCLEOTIDES for nt2 in NUCLEOTIDES]:
             self.couplets1[nt1+nt2] = 0.7 * self.interactions[nt1] + 0.3 * self.interactions[nt2]
             self.couplets2[nt1+nt2] = 0.4 * self.interactions[nt1] + 0.6 * self.interactions[nt2]
 
@@ -105,7 +118,7 @@ class Protein:
             # Transporters
             elif domain.startswith('t'):
                 if aa == 'L':
-                    if metabolite in all_metabolites:
+                    if metabolite in CHEMICALS:
                         catalytic = True
                         if domain[1] == 'f':
                             self.setMetabolites([metabolite], [metabolite], self.solution.solution)
@@ -115,22 +128,22 @@ class Protein:
                     direction = None
                     metabolite = ''
                 else:
-                    metabolite += aa_to_atom.get(aa, '')
+                    metabolite += AA_TO_CHEMICAL.get(aa, '')
             
             # Enzymes
             elif domain.startswith('e'):
-                if aa in aa_to_reaction.keys():
+                if aa in AA_TO_REACTION.keys():
                     catalytic = True
-                    r = aa_to_reaction[aa]
+                    r = AA_TO_REACTION[aa]
                     
                     if domain[1] == 'f':
                         self.setMetabolites(r.substrates, r.products)
-                        self.f_rate *= r.rates[0]
-                        self.r_rate *= r.rates[1]
+                        self.f_rate *= r.k1
+                        self.r_rate *= r.k2
                     else:
                         self.setMetabolites(r.products, r.substrates)
-                        self.f_rate *= r.rates[1]
-                        self.r_rate *= r.rates[0]
+                        self.f_rate *= r.k2
+                        self.r_rate *= r.k1
                     domain = None
             
             # Binding Proteins
@@ -237,33 +250,7 @@ class Protein:
         for function in self.functions:
             function()
 
-# Map codons to enzyme functions
-nucleotides = ['A', 'B', 'C', 'D']
-codons = ['%s%s' % (a, b) for a in nucleotides for b in nucleotides]
-amino_acid_code = 'LMNOPQRSTUVWXYZ'
-
-atoms = [['E', 'F', 'G', 'H'],
-         ['I', 'J', 'K', 'L']]
-diatoms = [atoms[x][y]+atoms[z][3-y] for x in (0,1) for y in (0,1) for z in (0,1)]
-codon_to_atom = dict(zip(amino_acid_code[1:],atoms[0]+atoms[1]))
-
-all_metabolites = 'E,F,G,H,I,J,K,L,EH,EL,FG,FK,IL,IH,JK,JG'.split(',')
-enzyme_functions = 'tf,tr,ef,er,ribosome,binding'.split(',')
-all_reactions = [Reaction(['EH'], ['E', 'H'], 1, 0.2),
-                 Reaction(['EL'], ['E', 'L'], 1, 0.5),
-                 Reaction(['FG'], ['F', 'G'], 0.85, 1),
-                 Reaction(['FK'], ['F', 'K'], 0.3, 1),
-                 Reaction(['IL'], ['I', 'L'], 0.8, 1),
-                 Reaction(['IH'], ['I', 'H'], 1, 0.5),
-                 Reaction(['JK'], ['J', 'K'], 0.07, 1),
-                 Reaction(['JG'], ['J', 'G'], 0.3, 1),
-                 Reaction(['EH','IL'], ['EL', 'IH'], 1, 1),
-                 Reaction(['FG','JK'], ['FK', 'JG'], 1, 1)]
-
-TRANSLATE = dict(zip(codons, amino_acid_code))
-aa_to_function = dict(zip(amino_acid_code, enzyme_functions))
-aa_to_reaction = dict(zip(amino_acid_code, all_reactions))
-aa_to_atom = dict(zip(amino_acid_code[1:], all_metabolites[:8]))
+# Define amino acids for their interactions
 
 amino_acids = {}
 for line in open('aminoAcids.txt'):
