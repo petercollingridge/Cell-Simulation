@@ -1,20 +1,20 @@
-import virtualCell
+import solutions
 import drawSVGGraph
 
 # Initilise Solution
-solution_metabolites = virtualCell.default_metabolites
-solution_metabolites['FK'] = 0.16
+solution_metabolites = solutions.default_metabolites
+solution_metabolites['FK'] = 0.20
 solution_metabolites['IL'] = 0.08
-solution_metabolites['FG'] = 0.06
+solution_metabolites['FG'] = 0.08
 solution_metabolites['JG'] = 0.04
 solution_metabolites['EL'] = 0.01
-solution = virtualCell.Solution(24000.0, solution_metabolites)
+solution = solutions.Solution(24000.0, solution_metabolites)
 #solution.output('metabolites')
 
 # Initilise Cell
 cell = solution.addCell(volume=1000.0, metabolites='default')
 cell.metabolites['EH'].amount += 40     # Add ATP
-cell.metabolites['F'].amount  += 20     # Add ATP
+cell.metabolites['F'].amount  += 40     # Add ATP
 #cell.metabolites['JG'].amount += 40     # Add Amino acids
 
 DNA  = 'AAAAAD BB AA BBBBBBBA AA BA ACAA DDAAAA'    # Transcription factor
@@ -27,12 +27,14 @@ DNA += 'AADAAD AC AC DDAAAA'                        # FGase
 DNA += 'AADAAD AC AD DDAAAA'                        # FKase
 DNA += 'AADAAD AA ACAA AC AA DDAAAA'                # F-driven EHase
 
+DNA = 'AAAAADBBAABBBBBBBAAABAACAADDAAAAAADAADAAACADAADDAAAAAADAADAAACBDAADDAAAAAADAADAABCADAADDAAAAAADAADAAADAAABBBADDDAAAAAADAADAABAAAABBDAADDAAAAAADAADACACDDAAAAAADAADACADDDAAAAAADAADAAACAAACAADDAAAAABACDAADCCCCBDBCCACDBCBBDBCCCAACADBBAABACDDCDACABCABCCBCA'
+
 cell.addDNA(DNA)
 
 for seq in cell.proteins:
-    cell.proteins[seq].amount += 1
-cell.output('metabolites')
-cell.proteins['LNLNL'].amount += 1
+    cell.proteins[seq].amount += 0.25
+cell.proteins['QLQQQPLPNL'].amount += 0.75
+cell.output()
 
 # Data recording options
 data_collection_functions = {\
@@ -43,7 +45,7 @@ data_collection_functions = {\
 data_collection = dict([(key, []) for key in data_collection_functions.keys()])
 
 # Run Simulation
-run_time = 50000
+run_time = 100
 for t in range(run_time):
     #cell.metabolites['EH'].amount = 80  # Keep ATP constant
     #cell.metabolites['JG'].amount = 40  # Keep amino acids constant
@@ -67,4 +69,4 @@ g.x_axis_label = "Time"
 g.y_axis_label = "Concentration"
 g.data = data_collection
 
-g.outputSVG('tf graph', width=400, height=250)
+#g.outputSVG('tf graph', width=400, height=250)
